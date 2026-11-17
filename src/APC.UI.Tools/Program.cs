@@ -78,7 +78,8 @@ namespace APC.UI.Tools
             }
             if (compare != null && !File.Exists(compare)) throw new RenderException("비교할 원본이 없습니다: " + compare);
 
-            string output = args[4];
+            string output = Path.GetFullPath(args[4]);
+            Directory.CreateDirectory(Path.GetDirectoryName(output));   // 없는 폴더면 GDI+가 원인 없는 오류를 낸다
             using (var bmp = Renderer.Render(args[1], args[2], args[3], size))
             {
                 bmp.Save(output, ImageFormat.Png);

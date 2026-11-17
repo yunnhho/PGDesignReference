@@ -12,6 +12,7 @@ quiet tools/new-project.sh "$T/app" SmokeApp "샘플 고객" || fail new-project
 quiet "$MSBUILD" "$(cygpath -w "$T/app/SmokeApp.sln")" -v:m -nologo -p:PreferredUILang=en-US || fail build-new-project
 quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "$(cygpath -w "$T/app/bin/Debug/themes/샘플 고객")" "$(cygpath -w "$T/main.png")" || fail render
 [ -s "$T/main.png" ] || fail render-output
+quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "$(cygpath -w "$T/app/bin/Debug/themes/샘플 고객")" "$(cygpath -w "$T/new-dir/main.png")" || fail render-creates-output-dir
 
 tools/new-project.sh "$T/bad" 1bad x > /dev/null 2>&1 && fail reject-bad-name
 tools/new-project.sh "$T/app" SmokeApp x > /dev/null 2>&1 && fail reject-existing-csproj
