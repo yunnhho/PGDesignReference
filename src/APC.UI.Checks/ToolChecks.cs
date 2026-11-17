@@ -13,6 +13,7 @@ namespace APC.UI.Checks
             var md = ApiWriter.Write(dll);
             Check(md.StartsWith("# APC.UI API (v" + typeof(APC.UI.Controls.ApcButton).Assembly.GetName().Version + ")"), "api: header carries version");
             Check(md.Contains("## ApcTemplateView") && md.Contains("## ApcButton"), "api: lists public controls");
+            Check(md.Contains("## ApcJudgePanel") && md.Contains("string Text { get; set; }") && md.Contains("static int Px(int px)"), "api: documents Text overrides and ApcTheme.Px");
             Check(md.Contains("Load(string themeDir)"), "api: lists ApcTheme.Load signature");
             Check(md.Contains("모든 기능 화면의 공통 틀"), "api: includes xml summary text");
             Check(md == ApiWriter.Write(dll), "api: deterministic");

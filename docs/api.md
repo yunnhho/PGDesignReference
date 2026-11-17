@@ -1,4 +1,4 @@
-# APC.UI API (v1.2.0.0)
+# APC.UI API (v1.3.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -98,6 +98,7 @@
 - `ApcJudgePanel()`
 - `StatusKind Status { get; set; }`
 - `string SubText { get; set; }` — 큰 글자 아래 한 줄(예: "시리얼을 스캔하세요", "하중 19.4 kN > 상한 18.0").
+- `string Text { get; set; }` — 큰 글자(OK / NG / READY 등).
 
 ## ApcLamp
 
@@ -147,7 +148,7 @@
 - `ApcScanBox()`
 - `const int FlashMs`
 - `event EventHandler<ScanEventArgs> Scanned`
-- `void Attach(Form host)`
+- `void Attach(Form host)` — 이 폼에서 스캔을 받기 시작한다. 화면(UserControl) 생성자에서는 아직 폼이 없으므로 화면의 OnHandleCreated에서 FindForm()으로 부른다: var f = FindForm(); if (f != null) _scan.Attach(f);
 - `void Flash(bool success)` — 성공 = 초록 플래시 + 짧은 비프, 실패 = 빨강 플래시 + 경고음.
 
 ## ApcStatusTile
@@ -158,6 +159,7 @@
 - `ApcStatusTile()`
 - `StatusKind Status { get; set; }`
 - `string StatusText { get; set; }` — 설비명 아래 한 줄(예: "가동 · 정상", "알람 · 온도 상한 초과").
+- `string Text { get; set; }` — 설비명(굵게, 램프 오른쪽 윗줄).
 
 ## ApcTemplateView
 
@@ -171,7 +173,7 @@
 - `protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)`
 - `protected static FlowLayoutPanel Row(params Control[] controls)` — 왼쪽→오른쪽으로 쌓는 한 줄(필터·버튼 줄).
 - `protected static Label Caption(string text)`
-- `protected static int S(int px)`
+- `protected static int S(int px)` — 배율 적용 px. ApcForm dialog 등 이 클래스 밖에서는 ApcTheme.Px.
 
 ## ApcTextBox
 
@@ -257,6 +259,7 @@
 - `static float ImageScale(Image img)` — 이미지가 몇 배율 파일인지(9-slice 여백 환산용).
 - `static float Scale { get; }`
 - `static int MinHeight { get; }`
+- `static int Px(int px)` — 96dpi 기준 px을 현재 배율로. 화면·dialog 어디서나 크기·여백에 쓴다(ApcTemplateView의 S()와 같다).
 - `static string AssetsDir { get; }`
 - `static string ThemeDir { get; }`
 - `static void Load(string themeDir)`

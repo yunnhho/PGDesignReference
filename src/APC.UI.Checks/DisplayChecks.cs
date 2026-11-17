@@ -25,6 +25,8 @@ namespace APC.UI.Checks
                 Check(chart.UpperLimit == null && chart.Reference == null, "trend: NaN/infinite limit means no line");
             }
 
+            Check(ApcTheme.Px(100) == (int)System.Math.Round(100 * ApcTheme.Scale), "theme: Px scales like template S()");
+
             var c = ApcTheme.Current.Colors;
             Check(Cards.EmphasisColor(StatusKind.Run) == ApcTheme.C(c.Text), "card: normal value uses text color (not green)");
             Check(Cards.EmphasisColor(StatusKind.Alarm) == ApcTheme.Status(StatusKind.Alarm), "card: alarm value uses alarm color");

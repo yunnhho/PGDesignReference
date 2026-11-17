@@ -34,6 +34,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 코드는 **그 프로젝트의** `LangVersion`/`TargetFrameworkVersion`을 따른다(v4.x면 C# 7.3까지: `record`, `init`, `string?`, switch 식, `new()` 금지).
 
+파일은 Write 도구로 하나씩 만든다. 한글이 든 긴 Bash heredoc 여러 개를 한 번에 보내면 따옴표 파싱 오류로 아무것도 만들어지지 않는다.
+
 ## 3. API 파악
 
 `$REPO/docs/api.md`(자동 생성 API 요약)를 읽는다. 컨트롤 소스 전체를 읽지 않는다. 배치 참고용 템플릿은 아래에서 고른 1~2개만 `$REPO/src/APC.UI.Demo/Templates/`에서 읽는다.
@@ -44,23 +46,25 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 |---|---|
 | 모니터링: 라인 전체, 설비 상태 | `EquipmentView` |
 | 모니터링: 센서 값 카드·추이 | `TempHumiView` |
-| 공정 설비 프로그램: 분석·판정 | `FailureAnalysisView` |
+| 공정 설비 프로그램: 설비 한 대 판정(스캔 → OK/NG, 측정값, 금일 집계, 이력) | `JudgeView` |
+| 공정 설비 프로그램: 여러 설비 분석표 | `FailureAnalysisView` |
 | 작업 입력: 시작·실적·불량 | `WorkStartView`, `ProductionView`, `DefectView` |
 | 조회 | `HistoryView` |
 
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
-- 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 `S(px)`로 배율 적용.
+- 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 배율 적용: 화면(`ApcTemplateView`)에서는 `S(px)`, dialog(`ApcForm`) 등 그 밖에서는 `ApcTheme.Px(px)`.
+- `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다.
 - **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
 
 | 화면 요소 | 컨트롤 |
 |---|---|
-| 글자 입력 / 바코드 | `ApcTextBox` / `ApcScanBox`(`Attach(form)` 필요) |
+| 글자 입력 / 바코드 | `ApcTextBox` / `ApcScanBox`: 화면의 `OnHandleCreated`에서 `var f = FindForm(); if (f != null) _scan.Attach(f);`(생성자엔 폼이 없다) |
 | 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment) / `ApcDateBox` |
 | 버튼 | `ApcButton`(Normal·Primary·Danger) |
 | 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`) |
 | 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status) |
-| 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text·Status·StatusText, `Click`) |
-| OK/NG 판정 크게 | `ApcJudgePanel`(Text·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
+| 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text=설비명·Status·StatusText, `Click`) |
+| OK/NG 판정 크게 | `ApcJudgePanel`(Text=큰 글자·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
 | 추이 그래프 | `ApcTrendChart`(`SetValues`, XLabels, Reference, UpperLimit/LowerLimit) |
 | 상태 램프 | `ApcLamp` |
 

@@ -23,6 +23,9 @@ namespace APC.UI.Theming
         public static int MinHeight { get { return (int)Math.Round(BaseMinHeight * Scale); } }
         public static string AssetsDir { get { return Path.Combine(ThemeDir, "assets"); } }
 
+        /// <summary>96dpi 기준 px을 현재 배율로. 화면·dialog 어디서나 크기·여백에 쓴다(ApcTemplateView의 S()와 같다).</summary>
+        public static int Px(int px) { return (int)Math.Round(px * Scale); }
+
         /// <summary>필수 이미지. Load 때 @1x 존재를 확인해 첫 OnPaint가 아니라 시작 시점에 실패하게 한다.</summary>
         internal static readonly string[] RequiredImages = BuildRequiredImages();
 

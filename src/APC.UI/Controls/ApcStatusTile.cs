@@ -35,6 +35,9 @@ namespace APC.UI.Controls
         /// <summary>설비명 아래 한 줄(예: "가동 · 정상", "알람 · 온도 상한 초과").</summary>
         [DefaultValue("")] public string StatusText { get { return _statusText; } set { _statusText = value ?? ""; Invalidate(); } }
 
+        /// <summary>설비명(굵게, 램프 오른쪽 윗줄).</summary>
+        public override string Text { get { return base.Text; } set { base.Text = value; } }
+
         protected override void OnTextChanged(EventArgs e) { base.OnTextChanged(e); Invalidate(); }
 
         protected override void OnPaint(PaintEventArgs e)
