@@ -40,5 +40,8 @@ cp assets-src/lamp_run.svg "$T/ov/icon_smoke_normal.svg"
 quiet node tools/render-assets.mjs --out "$T/ov-out" --override "$T/ov" || fail render-assets
 [ -f "$T/ov-out/icon_smoke_normal@1x.png" ] || fail render-assets-new-name
 
+quiet bash tools/install-skill.sh "$T/skills" || fail install-skill
+grep -q "^name: apc-field-ui" "$T/skills/apc-field-ui/SKILL.md" || fail install-skill-content
+
 rm -rf "$T"
 echo "SMOKE OK"

@@ -11,6 +11,8 @@ WinForms(.NET Framework 4.0~4.8) 현장 프로그램용 컨트롤·테마·이�
 - `render <exe|dll> <형식명> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]` — 화면을 PNG로, 원본 캡처와 나란히 비교본도.
 - `attach <csproj> [--check]` — 기존 csproj에 APC.UI 참조와 테마 출력 복사 추가(원래 서식·인코딩 유지). `--check`는 연결 가능 여부만 검사.
 
+Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/install-skill.sh`로 `~/.claude/skills/`에 설치하면(저장소 경로 자동 반영) 다른 폴더에서 "현장 PC 화면 만들어줘"류 요청에 이 저장소 도구를 쓴다. 스킬을 고치면 다시 설치한다.
+
 직접 할 때:
 
 1. `src/APC.UI/APC.UI.csproj`를 Release로 빌드해(VS에서 구성 Release, 또는 `MSBuild src/APC.UI/APC.UI.csproj -p:Configuration=Release`) 나온 `src/APC.UI/bin/Release/APC.UI.dll`을 참조에 추가한다. `./build.sh`는 Debug만 빌드한다.
@@ -43,7 +45,7 @@ src/APC.UI.Demo/bin/Debug/APC.UI.Demo.exe [--theme sample]   # 갤러리
 assets-src/   SVG 원본(수정은 여기서)      themes/       테마별 theme.json + assets/*.png
 src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 + 기능 템플릿 5종)
 src/APC.UI.Checks/  자가점검 콘솔           tools/        SVG → PNG 렌더러, new-project.sh, smoke.sh, project-template/
-src/APC.UI.Tools/   api·render·attach 도구
+src/APC.UI.Tools/   api·render·attach 도구     skills/       Claude Code 스킬 원본(apc-field-ui)
 Resources/    예전 납품 이미지(참고용, 수정하지 않음)
 references/   기존 현장 프로그램 화면 캡처(UI 레퍼런스)
 references/redesign/  위 화면을 APC.UI로 재구성한 결과(*.apcui.png)와 원본 비교(*.compare.png)

@@ -16,6 +16,10 @@ APCSOFT 현장 PC 프로그램(WinForms)용 UI 기준 저장소. 사용법·폴�
 - 새로 만들기 전에 `src/APC.UI/Controls/`의 기존 컨트롤과 `src/APC.UI.Demo/Templates/`의 템플릿을 먼저 확인하고 재사용한다.
 - 새 컨트롤은 `APC.UI`에 두고, 갤러리(`src/APC.UI.Demo/GalleryForm.cs`)에 예시를 추가하고, 로직이 있으면 `src/APC.UI.Checks/`에 점검을 추가한다.
 
+## 스킬
+- `skills/apc-field-ui/SKILL.md`는 `tools/new-project.sh`, `APC.UI.Tools`(api/render/attach), `render-assets.mjs`의 인자와 데모 템플릿 이름을 그대로 적어 쓴다. 이것들을 바꾸면 SKILL.md도 고치고 `bash tools/install-skill.sh`로 다시 설치한다.
+- 설치본(`~/.claude/skills/apc-field-ui`)을 직접 고치지 않는다. 원본은 저장소다.
+
 ## Git
 - `main`에 직접 커밋하지 않는다. 작업마다 브랜치를 만든다.
 - 커밋 메시지: `<type>: <설명>` (feat, fix, refactor, docs, chore …).
