@@ -38,6 +38,10 @@
       <Project>{EE23C9B4-B2EB-48BC-A87F-AEB80E3C3316}</Project>
       <Name>APC.UI</Name>
     </ProjectReference>
+    <ProjectReference Include="..\APC.UI.Tools\APC.UI.Tools.csproj">
+      <Project>{8C1F3A52-6D4B-4E7A-9B21-3F5E7C9D0A14}</Project>
+      <Name>APC.UI.Tools</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

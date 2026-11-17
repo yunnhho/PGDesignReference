@@ -8,4 +8,5 @@ CODE=$?
 grep -E "error|warning|->" "$LOG"
 rm -f "$LOG"
 [ $CODE -eq 0 ] || { echo "BUILD FAILED ($CODE)"; exit $CODE; }
+./src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe api src/APC.UI/bin/Debug/APC.UI.dll docs/api.md || { echo "API DOC FAILED"; exit 1; }
 ./src/APC.UI.Checks/bin/Debug/APC.UI.Checks.exe
