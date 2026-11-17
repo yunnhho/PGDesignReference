@@ -16,7 +16,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | **메인 기능** | 고객사 요구서 파일 |
 | **상세 dialog 유무** | 추가 상세 요청 |
 
-필수 중 빠진 것만 한 번에 묻는다. 셋 다 있으면 바로 진행한다. 요구서가 있으면 메인 기능 목록을 거기서 보완한다. 고객사명이 없으면 `default`로 하고 그렇게 했다고 말한다.
+필수 중 빠진 것만 한 번에 묻는다. 셋 다 있으면 바로 진행한다. 요구서가 있으면 메인 기능 목록을 거기서 보완한다. 고객사명이 없으면 `default`로 하고 그렇게 했다고 말한다. 고객사명이 있어도 저장소에 그 테마가 없으면 `new-project.sh`가 `알림: ... themes/default 를 복사했습니다`를 출력한다 — 이것도 사용자에게 전한다.
 
 ## 2. 프로젝트 판별과 준비
 
@@ -50,8 +50,25 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
 - 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 `S(px)`로 배율 적용.
+- **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
+
+| 화면 요소 | 컨트롤 |
+|---|---|
+| 글자 입력 / 바코드 | `ApcTextBox` / `ApcScanBox`(`Attach(form)` 필요) |
+| 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment) / `ApcDateBox` |
+| 버튼 | `ApcButton`(Normal·Primary·Danger) |
+| 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`) |
+| 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status) |
+| 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text·Status·StatusText, `Click`) |
+| OK/NG 판정 크게 | `ApcJudgePanel`(Text·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
+| 추이 그래프 | `ApcTrendChart`(`SetValues`, XLabels, Reference, UpperLimit/LowerLimit) |
+| 상태 램프 | `ApcLamp` |
+
+- **표준 컨트롤 금지**: `Button`/`TextBox`/`ComboBox`/`NumericUpDown`/`DateTimePicker`/`DataGridView`/`Form`과 `Control`을 상속해 직접 그린 카드·타일·그래프를 만들지 않는다. 위 표의 Apc 컨트롤을 쓴다. 표준으로 쓰는 것은 `Label`과 배치용 `Panel`/`FlowLayoutPanel`/`TableLayoutPanel`뿐. 표에 없는 요소가 꼭 필요하면 만들지 말고 사용자에게 알린다(라이브러리에 추가할 후보).
 - 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
-- dialog는 `ApcDialog` 기반 별도 폼. 되돌릴 수 없는 동작 앞에는 `ApcDialog.Confirm(this, "...")`.
+- **dialog는 `ApcForm`을 상속한 별도 폼**이다(`ApcDialog`는 확인창만 띄우는 static 클래스라 상속할 수 없다). 생성자에서 `TitleText`, `Resizable = false`, `MinimizeBox = false`, `ShowInTaskbar = false`, `StartPosition = FormStartPosition.CenterParent`, `ClientSize`를 정하고, 내용은 `ContentBounds.Top` 아래에 둔다. 메인에서 `dlg.ShowDialog(FindForm())`.
+- 확인: 되돌릴 수 없는 동작은 `ApcDialog.Confirm(this, "...")`(빨간 확인), 저장처럼 위험하지 않은 것은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`. 입력 오류 안내는 `ApcDialog.Alert(this, "...")`. 메인 화면의 이상 알림은 `Alarm.Push("...")`(알람바).
+- 카드·타일을 한 줄에 같은 폭으로: `TableLayoutPanel { Dock = DockStyle.Top, Height = S(..), ColumnCount = n }`에 `ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / n))`, 각 칸 `Dock = DockStyle.Fill`, `Margin`으로 간격. 줄 사이 간격은 그 패널의 `Padding.Bottom`.
 - 상태 표시는 `StatusKind`(Run/Warn/Alarm/Stop/Info) + `ApcLamp`/`ApcLampColumn`. 색은 테마가 정한다.
 
 ## 5. 새 그림이 필요할 때만
@@ -63,13 +80,14 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 6. 데이터 자리
 
-메인 화면은 `Data/IMainViewSource`(인터페이스)에만 의존하고, `Data/SampleMainViewSource`가 샘플을 준다. 화면에 맞게 인터페이스 메서드와 행 모델을 바꾼다. 화면에는 **매개변수 없는 생성자**(샘플 사용)를 남긴다 — render가 쓴다. dialog는 메인 화면에서 값을 넘겨받고 자체 인터페이스를 두지 않는다. dialog에도 **샘플 값을 넣는 매개변수 없는 생성자**를 둔다 — 없으면 render할 수 없다.
+메인 화면은 `Data/IMainViewSource`(인터페이스)에만 의존하고, `Data/SampleMainViewSource`가 샘플을 준다. 화면에 맞게 인터페이스 메서드와 행 모델을 바꾼다. 화면에는 **매개변수 없는 생성자**(샘플 사용)를 남긴다 — render가 쓴다. dialog는 메인 화면에서 값을 넘겨받고 자체 인터페이스를 두지 않는다. dialog에도 **샘플 값을 넣는 매개변수 없는 생성자**를 둔다 — 없으면 render할 수 없다. 샘플 값은 서로 맞춘다(알람 문구의 기준값 = 설정값 표 = 그래프 기준선, 추이 마지막 점 = 현재값).
 
 ## 7. 완료 확인
 
 1. MSBuild로 빌드: `"/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe" <sln> -v:m`
-2. 메인 폼과 각 dialog를 PNG로:
+2. 메인 폼과 각 dialog를 PNG로(형식 이름은 네임스페이스 없이 클래스 이름만, 예: `MainForm`, `RecipeDialog`):
    `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe render <bin/Debug/앱.exe> MainForm <bin/Debug/themes/고객사> <out.png>` (Windows 경로는 `cygpath -w`)
+   dialog는 `--size <ClientSize 폭>x<높이>`를 꼭 준다(예: `--size 460x500`). 안 주면 1920×1080으로 그려 실제 크기를 확인할 수 없다.
    캡처를 받았다면 `--compare <캡처.png>` → `<out>.compare.png`
 3. PNG를 직접 열어 보고 사용자에게 경로와 함께 보여 준다.
 
@@ -79,7 +97,7 @@ render 제한: 도구는 64비트로 돈다. `PlatformTarget`이 x86인 앱이�
 
 | 하지 않음 | 대신 |
 |---|---|
-| 표준 `Button`/`DataGridView`/`Form`으로 직접 그리기 | `ApcButton`/`ApcGrid`/`ApcForm` |
+| 표준 입력·표·폼 컨트롤, `Control` 상속 직접 그리기 | 4단계 표의 Apc 컨트롤 |
 | 상태색 색상 변경(run=초록, warn=노랑, alarm=빨강, stop=회색, info=파랑) | 명도만 고객사 `theme.json`에서 |
 | `$REPO/themes/default`, `$REPO/assets-src/*.svg` 수정 | 프로젝트의 `themes/<고객사>`, `assets-src/` |
 | 컨트롤 API 추측 | `docs/api.md` 확인 |
