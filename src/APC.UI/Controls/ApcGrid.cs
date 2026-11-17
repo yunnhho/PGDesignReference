@@ -6,7 +6,11 @@ using APC.UI.Theming;
 
 namespace APC.UI.Controls
 {
-    /// <summary>테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택.</summary>
+    /// <summary>
+    /// 테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택.
+    /// 사용자가 표를 누르거나 키로 움직이기 전에는 첫 행이 저절로 선택되지 않는다(CurrentRow = null) —
+    /// "선택한 행에 대해" 동작하는 버튼은 CurrentRow가 null이면 아무것도 하지 않게 둔다.
+    /// </summary>
     public class ApcGrid : DataGridView
     {
         public ApcGrid()
@@ -67,6 +71,30 @@ namespace APC.UI.Controls
             e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);
             e.Handled = true;
         }
+
+        // DataGridView는 화면에 뜰 때·행이 추가될 때 첫 행을 저절로 선택해 파란 줄이 생긴다(모니터링 표에서 '선택된 행'으로 오해).
+        // 사용자가 표를 누르거나 키로 움직이기 전까지는 저절로 생긴 선택을 지운다. 앱이 코드로 고른 선택은 그 뒤 그대로 둔다.
+        private bool _userSelected;
+
+        private void ClearAutoSelection()
+        {
+            if (_userSelected || !IsHandleCreated) return;
+            ClearSelection();
+            if (CurrentCell != null && !IsCurrentCellInEditMode) CurrentCell = null;
+        }
+
+        protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); ClearAutoSelection(); }
+        protected override void OnVisibleChanged(EventArgs e) { base.OnVisibleChanged(e); ClearAutoSelection(); }
+        protected override void OnEnter(EventArgs e) { base.OnEnter(e); ClearAutoSelection(); }   // 폼이 뜨며 첫 포커스를 줄 때 여기서 선택된다
+        protected override void OnGotFocus(EventArgs e) { base.OnGotFocus(e); ClearAutoSelection(); }
+        protected override void OnRowsAdded(DataGridViewRowsAddedEventArgs e)
+        {
+            base.OnRowsAdded(e);
+            // 현재 셀은 RowsAdded 이벤트 뒤에 잡히므로 처리 후로 미룬다.
+            if (!_userSelected && IsHandleCreated) BeginInvoke((MethodInvoker)ClearAutoSelection);
+        }
+        protected override void OnMouseDown(MouseEventArgs e) { _userSelected = true; base.OnMouseDown(e); }
+        protected override void OnKeyDown(KeyEventArgs e) { _userSelected = true; base.OnKeyDown(e); }
 
         private void OnThemeChanged(object sender, EventArgs e) { ApplyTheme(); Invalidate(); }
 

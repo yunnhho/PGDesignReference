@@ -10,6 +10,29 @@ namespace APC.UI.Checks
     {
         private static void RunGridChecks()
         {
+            // 화면에 뜰 때 첫 행이 저절로 선택(파란 줄)되지 않는다. 앱이 고른 선택은 남는다.
+            using (var form = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
+            {
+                var g1 = new ApcGrid { Dock = DockStyle.Top, Height = 100 };
+                var g2 = new ApcGrid { Dock = DockStyle.Top, Height = 100 };
+                foreach (var g in new[] { g1, g2 })
+                {
+                    g.Columns.Add("a", "A");
+                    g.Rows.Add("1"); g.Rows.Add("2");
+                    form.Controls.Add(g);
+                }
+                form.Show();
+                Application.DoEvents();
+                Check(g1.SelectedRows.Count == 0, "grid: no automatic first-row selection when shown (was " + g1.SelectedRows.Count + ")");
+                g1.Rows.Add("3");
+                Application.DoEvents();
+                Check(g1.SelectedRows.Count == 0, "grid: adding rows does not select one");
+                g2.Rows[1].Selected = true;
+                Application.DoEvents();
+                Check(g2.SelectedRows.Count == 1 && g2.Rows[1].Selected, "grid: explicit selection by app is kept");
+                form.Hide();
+            }
+
             using (var grid = new ApcGrid())
             {
                 Check(grid.RowTemplate.Height >= ApcTheme.MinHeight, "grid row height >= min");
