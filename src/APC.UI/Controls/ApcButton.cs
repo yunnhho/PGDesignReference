@@ -17,7 +17,6 @@ namespace APC.UI.Controls
     /// <summary>9-slice 이미지 버튼. 이미지: btn_{variant}_{normal|hover|pressed|disabled}</summary>
     public class ApcButton : Button
     {
-        private static readonly Color FocusColor = Color.FromArgb(0x5A, 0x7F, 0xB0);
 
         private ApcButtonVariant _variant;
         private bool _hover;
@@ -78,7 +77,7 @@ namespace APC.UI.Controls
             if (Focused && ShowFocusCues)
             {
                 var f = Rectangle.Inflate(rect, -3, -3);
-                using (var pen = new Pen(FocusColor)) g.DrawRectangle(pen, f.X, f.Y, f.Width - 1, f.Height - 1);
+                using (var pen = new Pen(FieldFrame.FocusColor)) g.DrawRectangle(pen, f.X, f.Y, f.Width - 1, f.Height - 1);
             }
         }
 

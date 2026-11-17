@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using APC.UI.Controls;
-using APC.UI.Theming;
 
 namespace APC.UI.Demo.Templates
 {
@@ -10,8 +9,8 @@ namespace APC.UI.Demo.Templates
     {
         private static readonly string[] Types = { "미성형", "버(Burr)", "변색", "치수 불량", "이물" };
 
-        private readonly ComboBox _type = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-        private readonly NumericUpDown _qty = new NumericUpDown { Minimum = 1, Maximum = 9999, Value = 1 };
+        private readonly ApcComboBox _type = new ApcComboBox();
+        private readonly ApcNumericBox _qty = new ApcNumericBox { Minimum = 1, Maximum = 9999, Value = 1 };
         private readonly ApcScanBox _lot = new ApcScanBox();
         private readonly ApcGrid _grid = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = true };
 
@@ -19,9 +18,8 @@ namespace APC.UI.Demo.Templates
         {
             _type.Items.AddRange(Types);
             _type.SelectedIndex = 0;
-            _type.Font = _qty.Font = ApcTheme.GetFont();
             _type.Width = S(160);
-            _qty.Width = S(90);
+            _qty.Width = S(150);
             _lot.Width = S(220);
 
             var add = Button("등록", ApcButtonVariant.Primary);

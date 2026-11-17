@@ -11,13 +11,51 @@ namespace APC.UI.Controls
     /// </summary>
     public static class ApcDialog
     {
+        /// <summary>파괴적 동작 확인: 확인 버튼은 빨간 "확인".</summary>
         public static bool Confirm(IWin32Window owner, string message)
         {
-            using (var dlg = Create(message))
+            return Confirm(owner, message, "확인", ApcButtonVariant.Danger);
+        }
+
+        /// <summary>확인 버튼 글자·종류 지정. 저장처럼 위험하지 않은 확인은 ("저장", Primary).</summary>
+        public static bool Confirm(IWin32Window owner, string message, string okText, ApcButtonVariant okVariant)
+        {
+            using (var dlg = Create(message, okText, okVariant))
                 return dlg.ShowDialog(owner) == DialogResult.OK;
         }
 
+        /// <summary>알림(입력 오류 안내 등). 버튼은 "확인" 하나, Enter·Esc로 닫힌다.</summary>
+        public static void Alert(IWin32Window owner, string message)
+        {
+            using (var dlg = CreateAlert(message)) dlg.ShowDialog(owner);
+        }
+
         internal static ApcForm Create(string message)
+        {
+            return Create(message, "확인", ApcButtonVariant.Danger);
+        }
+
+        internal static ApcForm CreateAlert(string message)
+        {
+            var dlg = Create(message, "확인", ApcButtonVariant.Primary);
+            dlg.TitleText = "알림";
+            ApcButton ok = null;
+            foreach (Control c in dlg.Controls)
+            {
+                var b = c as ApcButton;
+                if (b == null) continue;
+                if (b.DialogResult == DialogResult.OK) ok = b;
+            }
+            var cancel = (Control)dlg.CancelButton;
+            dlg.Controls.Remove(cancel);
+            cancel.Dispose();
+            ok.TabIndex = 0;
+            dlg.AcceptButton = dlg.CancelButton = ok;
+            dlg.Shown += (sender, e) => ok.Focus();
+            return dlg;
+        }
+
+        internal static ApcForm Create(string message, string okText, ApcButtonVariant okVariant)
         {
             float s = ApcTheme.Scale;
             int pad = (int)(16 * s), btnW = (int)(96 * s), btnH = Math.Max(ApcTheme.MinHeight, (int)(34 * s));
@@ -33,7 +71,7 @@ namespace APC.UI.Controls
             };
 
             var cancel = new ApcButton { Text = "취소", Variant = ApcButtonVariant.Normal, DialogResult = DialogResult.Cancel, TabIndex = 0 };
-            var ok = new ApcButton { Text = "확인", Variant = ApcButtonVariant.Danger, DialogResult = DialogResult.OK, TabIndex = 1 };
+            var ok = new ApcButton { Text = okText, Variant = okVariant, DialogResult = DialogResult.OK, TabIndex = 1 };
             var anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             ok.SetBounds(dlg.ClientSize.Width - pad - btnW, dlg.ClientSize.Height - pad - btnH, btnW, btnH);
             cancel.SetBounds(ok.Left - (int)(8 * s) - btnW, ok.Top, btnW, btnH);

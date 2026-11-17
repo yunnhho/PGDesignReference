@@ -23,7 +23,7 @@ namespace APC.UI.Controls
     /// 스캔의 Enter는 삼켜서 폼의 기본 버튼(AcceptButton)을 누르지 않게 한다.
     /// 피드백은 Scanned 처리 후 한 번: e.Accepted에 따라 성공/실패.
     /// </summary>
-    public class ApcScanBox : TextBox, IMessageFilter
+    public class ApcScanBox : ApcTextBox, IMessageFilter
     {
         public const int FlashMs = 300;
         private const int WM_KEYDOWN = 0x0100;
@@ -33,6 +33,7 @@ namespace APC.UI.Controls
         private readonly Timer _flashTimer = new Timer { Interval = FlashMs };
         private ScanDetector _detector;
         private Form _host;
+        private FormClosedEventHandler _hostClosed;
 
         // 버스트가 시작될 때의 포커스 칸 상태 — 스캔이면 이걸로 되돌린다.
         private TextBoxBase _snapBox;
@@ -45,9 +46,8 @@ namespace APC.UI.Controls
         public ApcScanBox()
         {
             ImeMode = ImeMode.Disable;   // 한글 IME 상태에서도 바코드가 자모로 조합되지 않게
-            _flashTimer.Tick += (s, e) => { _flashTimer.Stop(); BackColor = SystemColors.Window; };
+            _flashTimer.Tick += (s, e) => { _flashTimer.Stop(); ResetFieldColor(); };
             ApcTheme.Changed += OnThemeChanged;
-            ApplyTheme();
             ResetDetector();
         }
 
@@ -57,11 +57,16 @@ namespace APC.UI.Controls
         public void Attach(Form host)
         {
             if (host == null) throw new ArgumentNullException("host");
-            if (_host != null) Application.RemoveMessageFilter(this);
+            if (_host != null)
+            {
+                Application.RemoveMessageFilter(this);
+                _host.FormClosed -= _hostClosed;   // 이전 폼이 나중에 닫히며 새 폼용 필터를 지우지 않게
+            }
             _host = host;
             ResetDetector();
             Application.AddMessageFilter(this);
-            host.FormClosed += (s, e) => Application.RemoveMessageFilter(this);
+            _hostClosed = (s, e) => Application.RemoveMessageFilter(this);
+            host.FormClosed += _hostClosed;
         }
 
         /// <summary>성공 = 초록 플래시 + 짧은 비프, 실패 = 빨강 플래시 + 경고음.</summary>
@@ -165,14 +170,7 @@ namespace APC.UI.Controls
             _detector = scan == null ? new ScanDetector(50, 4) : new ScanDetector(scan.MaxKeyIntervalMs, scan.MinLength);
         }
 
-        private void ApplyTheme()
-        {
-            if (ApcTheme.Current == null) return;
-            Font = ApcTheme.GetFont();
-            MinimumSize = new Size(0, ApcTheme.MinHeight);
-        }
-
-        private void OnThemeChanged(object sender, EventArgs e) { ApplyTheme(); ResetDetector(); }
+        private void OnThemeChanged(object sender, EventArgs e) { ResetDetector(); }
 
         protected override void Dispose(bool disposing)
         {
