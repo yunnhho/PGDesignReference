@@ -4,7 +4,7 @@ WinForms(.NET Framework 4.0~4.8) 현장 프로그램용 컨트롤·테마·이�
 
 ## 새 고객사 프로젝트에서 쓰는 법
 
-1. `src/APC.UI/bin/Release/APC.UI.dll`을 참조에 추가한다.
+1. `src/APC.UI/APC.UI.csproj`를 Release로 빌드해(VS에서 구성 Release, 또는 `MSBuild src/APC.UI/APC.UI.csproj -p:Configuration=Release`) 나온 `src/APC.UI/bin/Release/APC.UI.dll`을 참조에 추가한다. `./build.sh`는 Debug만 빌드한다.
 2. `themes/default` 폴더를 `themes/<고객사>`로 복사해 프로그램 실행 폴더에 같이 배포한다.
 3. `Main`에서 폼을 띄우기 전에 `ApcTheme.Load(@"...\themes\<고객사>")`를 호출한다. `ThemeException`이 나면 메시지에 파일과 항목이 적혀 있다.
 4. 폼은 `ApcForm`을 상속하고, `ApcButton` / `ApcGrid` / `ApcLampColumn` / `ApcScanBox` / `ApcHeaderBar` / `ApcAlarmBar` / `ApcLamp`를 쓴다. 삭제 같은 되돌릴 수 없는 동작 앞에는 `ApcDialog.Confirm(this, "...")`를 둔다.
