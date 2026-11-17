@@ -41,6 +41,45 @@ namespace APC.UI.Checks
             Check(hinted.Split(new[] { "Include=\"APC.UI" }, StringSplitOptions.None).Length == 2 && hinted.Contains(@"lib\APC.UI.dll") && !hinted.Contains("shared"), "attach: rewrites existing APC.UI HintPath without duplicating");
             string v35 = old.Replace("v4.8", "v3.5");
             Check(Throws<InvalidOperationException>(() => CsprojPatcher.Patch(v35), "v3.5"), "attach: rejects non-4.x framework with actual value");
+
+            Check(KeepsLinesInOrder(old, once), "attach: keeps original lines and indentation (no reformat)");
+            Check(once.Contains("\n    <Reference Include=\"APC.UI\">\n      <HintPath>"), "attach: new reference indented like siblings");
+            string crlf = old.Replace("\r\n", "\n").Replace("\n", "\r\n");
+            string crlfOnce = CsprojPatcher.Patch(crlf);
+            Check(crlfOnce == CsprojPatcher.Patch(crlfOnce) && !crlfOnce.Replace("\r\n", "").Contains("\n"), "attach: CRLF file stays pure CRLF and idempotent");
+
+            string projRef = CsprojPatcher.Patch(File.ReadAllText(Fx(@"csproj\old-with-projectref.csproj")));
+            Check(!projRef.Contains("<Reference Include=\"APC.UI\""), "attach: existing APC.UI ProjectReference -> no extra Reference");
+
+            string twoCond = CsprojPatcher.Patch(File.ReadAllText(Fx(@"csproj\old-two-conditional.csproj")));
+            Check(!twoCond.Contains(@"..\debug") && !twoCond.Contains(@"..\release"), "attach: rewrites every conditional APC.UI reference");
+
+            string tmp = Path.Combine(Path.GetTempPath(), "apcui-utf16-" + Guid.NewGuid().ToString("N") + ".csproj");
+            File.WriteAllText(tmp, old.Replace("encoding=\"utf-8\"", "encoding=\"utf-16\""), System.Text.Encoding.Unicode);
+            try
+            {
+                CsprojPatcher.PatchFile(tmp);
+                var bytes = File.ReadAllBytes(tmp);
+                Check(bytes[0] == 0xFF && bytes[1] == 0xFE && File.ReadAllText(tmp).Contains("encoding=\"utf-16\""), "attach: keeps file encoding matching its declaration (utf-16)");
+                Check(File.ReadAllText(tmp).Contains(@"lib\APC.UI.dll"), "attach: PatchFile writes the patch");
+            }
+            finally { File.Delete(tmp); }
+
+            Check(Throws<InvalidOperationException>(() => CsprojPatcher.Validate(File.ReadAllText(Fx(@"csproj\sdk.csproj"))), "SDK"), "attach --check: validates without patching");
+        }
+
+        /// <summary>before의 모든 줄이 after에 같은 순서로(들여쓰기 포함) 남아 있는가.</summary>
+        private static bool KeepsLinesInOrder(string before, string after)
+        {
+            var a = after.Replace("\r\n", "\n").Split('\n');
+            int i = 0;
+            foreach (var line in before.Replace("\r\n", "\n").Split('\n'))
+            {
+                while (i < a.Length && a[i] != line) i++;
+                if (i == a.Length) return false;
+                i++;
+            }
+            return true;
         }
     }
 }

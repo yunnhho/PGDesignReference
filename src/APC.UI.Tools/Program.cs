@@ -54,9 +54,15 @@ namespace APC.UI.Tools
 
         private static int Attach(string[] args)
         {
-            if (args.Length != 2) return Usage();
-            string patched = CsprojPatcher.Patch(File.ReadAllText(args[1]));   // 실패하면 예외 → 파일은 그대로
-            File.WriteAllText(args[1], patched, new UTF8Encoding(true));
+            bool checkOnly = args.Length == 3 && args[2] == "--check";
+            if (args.Length != 2 && !checkOnly) return Usage();
+            if (checkOnly)
+            {
+                CsprojPatcher.Validate(File.ReadAllText(args[1]));   // 실패하면 예외 → 종료 코드 2
+                Console.WriteLine("attach --check ok: " + args[1]);
+                return 0;
+            }
+            CsprojPatcher.PatchFile(args[1]);
             Console.WriteLine("attach -> " + args[1]);
             return 0;
         }
