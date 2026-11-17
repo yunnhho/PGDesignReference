@@ -1,4 +1,4 @@
-# APC.UI API (v1.3.0.0)
+# APC.UI API (v1.3.1.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -77,7 +77,7 @@
 
 `APC.UI.Controls` · class : DataGridView
 
-테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택.
+테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택. 사용자가 표를 누르거나 키로 움직이기 전에는 첫 행이 저절로 선택되지 않는다(CurrentRow = null) — "선택한 행에 대해" 동작하는 버튼은 CurrentRow가 null이면 아무것도 하지 않게 둔다.
 - `ApcGrid()`
 
 ## ApcHeaderBar

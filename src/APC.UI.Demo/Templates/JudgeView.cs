@@ -50,7 +50,7 @@ namespace APC.UI.Demo.Templates
             _grid.Rows.Add(StatusKind.Run, "BP2411043", "10:09:00", "10.2", "4.98", "OK");
 
             var recipe = Button("레시피 편집", ApcButtonVariant.Normal, 130);
-            recipe.Click += (s, e) => ApcDialog.Alert(FindForm(), "레시피 편집 dialog 자리 (ApcForm 상속 별도 폼)");
+            recipe.Click += (s, e) => EditRecipe();
 
             // Top 도킹은 나중에 Add한 것이 위 → 이력(Fill) 먼저, 그다음 아래 줄부터
             Body.Controls.Add(_grid);
@@ -65,6 +65,17 @@ namespace APC.UI.Demo.Templates
             base.OnHandleCreated(e);
             var form = FindForm();
             if (form != null) _scan.Attach(form);   // 생성자 시점엔 폼이 없다
+        }
+
+        private void EditRecipe()
+        {
+            using (var dlg = new RecipeDialog())
+            {
+                if (dlg.ShowDialog(FindForm()) != DialogResult.OK) return;
+                // 실제로는 데이터 인터페이스(source.SaveRecipe 등)에 넘긴다. 여기서는 카드 기준 줄만 갱신.
+                _load.Footer = "기준 " + dlg.LoadMin + " ~ " + dlg.LoadMax + " kN";
+                _disp.Footer = "기준 " + dlg.DispMin + " ~ " + dlg.DispMax + " mm";
+            }
         }
 
         private bool Judge(string serial)

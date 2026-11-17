@@ -44,7 +44,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 | 목적 | 출발 템플릿 |
 |---|---|
-| 모니터링: 라인 전체, 설비 상태 | `EquipmentView` |
+| 모니터링: 라인 전체(설비 타일 + 현재값 카드 + 알람 이력, 타일 누르면 상세) | `EquipmentView` |
 | 모니터링: 센서 값 카드·추이 | `TempHumiView` |
 | 공정 설비 프로그램: 설비 한 대 판정(스캔 → OK/NG, 측정값, 금일 집계, 이력) | `JudgeView` |
 | 공정 설비 프로그램: 여러 설비 분석표 | `FailureAnalysisView` |
@@ -53,7 +53,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
 - 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 배율 적용: 화면(`ApcTemplateView`)에서는 `S(px)`, dialog(`ApcForm`) 등 그 밖에서는 `ApcTheme.Px(px)`.
-- `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다.
+- `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다. `MainForm.TitleText`도 화면 이름으로 바꾼다(기본값은 영문 프로젝트명).
+- dialog는 템플릿에서 출발한다: 보기용(상태 줄 + 표 + 추이 + 닫기)은 `EquipmentDetailDialog`, 입력 폼(이름표+입력칸 행, 검증 `Alert` → `Confirm` → 결과 속성 → OK)은 `RecipeDialog`.
 - **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
 
 | 화면 요소 | 컨트롤 |
@@ -72,7 +73,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 - 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
 - **dialog는 `ApcForm`을 상속한 별도 폼**이다(`ApcDialog`는 확인창만 띄우는 static 클래스라 상속할 수 없다). 생성자에서 `TitleText`, `Resizable = false`, `MinimizeBox = false`, `ShowInTaskbar = false`, `StartPosition = FormStartPosition.CenterParent`, `ClientSize`를 정하고, 내용은 `ContentBounds.Top` 아래에 둔다. 메인에서 `dlg.ShowDialog(FindForm())`.
 - 확인: 되돌릴 수 없는 동작은 `ApcDialog.Confirm(this, "...")`(빨간 확인), 저장처럼 위험하지 않은 것은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`. 입력 오류 안내는 `ApcDialog.Alert(this, "...")`. 메인 화면의 이상 알림은 `Alarm.Push("...")`(알람바).
-- 카드·타일을 한 줄에 같은 폭으로: `TableLayoutPanel { Dock = DockStyle.Top, Height = S(..), ColumnCount = n }`에 `ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / n))`, 각 칸 `Dock = DockStyle.Fill`, `Margin`으로 간격. 줄 사이 간격은 그 패널의 `Padding.Bottom`.
+- 카드·타일을 한 줄에 같은 폭으로: `EquipmentView`의 `Columns(height, cells)`를 그대로 쓴다(`TableLayoutPanel` 퍼센트 열, 각 칸 `Dock = Fill` + `Controls.Add(cell, i, 0)`, 칸 간격 = 오른쪽 `Margin`, 줄 간격 = `Padding.Bottom`).
+- `ApcGrid`는 사용자가 누르기 전엔 선택 행이 없다(`CurrentRow == null`). "선택한 행" 버튼은 null이면 아무것도 하지 않게 한다.
 - 상태 표시는 `StatusKind`(Run/Warn/Alarm/Stop/Info) + `ApcLamp`/`ApcLampColumn`. 색은 테마가 정한다.
 
 ## 5. 새 그림이 필요할 때만
