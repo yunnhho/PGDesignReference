@@ -1,0 +1,47 @@
+{
+  "name": "Sample (녹회색 고객사)",
+  "fontFamily": "맑은 고딕",
+  "fontSize": 10,
+  "colors": {
+    "background": [
+      "#E4E9E6",
+      "#CBD3CE"
+    ],
+    "header": [
+      "#5B7468",
+      "#2E4038"
+    ],
+    "gridHeader": [
+      "#FAFAFA",
+      "#D9DDE2"
+    ],
+    "border": "#888888",
+    "text": "#1F2937",
+    "textMuted": "#6B7280",
+    "textInverse": "#FFFFFF",
+    "gridAltRow": "#F3F4F6",
+    "gridSelected": "#CFE5D8",
+    "titleBar": [
+      "#F1F4F2",
+      "#CAD3CE"
+    ]
+  },
+  "status": {
+    "run": "#16A34A",
+    "warn": "#EAB308",
+    "alarm": "#B91C1C",
+    "stop": "#9CA3AF",
+    "info": "#2563EB"
+  },
+  "buttonSlice": [
+    8,
+    8,
+    8,
+    8
+  ],
+  "scan": {
+    "maxKeyIntervalMs": 50,
+    "minLength": 4
+  },
+  "logo": "logo_apcsoft"
+}

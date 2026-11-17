@@ -1,0 +1,7 @@
+bin/
+obj/
+*.user
+.vs/
+tools/node_modules/
+.superpowers/
+.remember/

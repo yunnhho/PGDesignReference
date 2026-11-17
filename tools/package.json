@@ -1,0 +1,8 @@
+{
+  "name": "apc-ui-tools",
+  "private": true,
+  "type": "module",
+  "description": "SVG master -> PNG asset renderer for APC.UI themes",
+  "scripts": { "render": "node render-assets.mjs" },
+  "devDependencies": { "@resvg/resvg-js": "2.6.2" }
+}
