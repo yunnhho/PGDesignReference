@@ -5,7 +5,7 @@ using APC.UI.Theming;
 namespace APC.UI.Demo.Templates
 {
     /// <summary>작업 시작: 작업 지시 그리드 + 선택 지시 상세 + 시작 버튼.</summary>
-    internal sealed class WorkStartView : TemplateView
+    internal sealed class WorkStartView : ApcTemplateView
     {
         private static readonly object[][] Orders =
         {

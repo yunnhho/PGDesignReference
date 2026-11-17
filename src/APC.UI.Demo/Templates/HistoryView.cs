@@ -5,7 +5,7 @@ using APC.UI.Controls;
 namespace APC.UI.Demo.Templates
 {
     /// <summary>이력 조회: 기간 필터 + 그리드 + 엑셀 내보내기(자리만, 비활성).</summary>
-    internal sealed class HistoryView : TemplateView
+    internal sealed class HistoryView : ApcTemplateView
     {
         private readonly DateTimePicker _from = new DateTimePicker { Format = DateTimePickerFormat.Short };
         private readonly DateTimePicker _to = new DateTimePicker { Format = DateTimePickerFormat.Short };

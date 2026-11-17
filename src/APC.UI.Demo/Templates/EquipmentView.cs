@@ -7,7 +7,7 @@ using APC.UI.Theming;
 namespace APC.UI.Demo.Templates
 {
     /// <summary>설비 상태: 상태별 요약 램프 + 설비 목록(램프 컬럼). 알람 설비는 알람 띠로.</summary>
-    internal sealed class EquipmentView : TemplateView
+    internal sealed class EquipmentView : ApcTemplateView
     {
         private static readonly object[][] Machines =
         {

@@ -1,19 +1,18 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using APC.UI.Controls;
 using APC.UI.Theming;
 
-namespace APC.UI.Demo.Templates
+namespace APC.UI.Controls
 {
     /// <summary>모든 기능 화면의 공통 틀: 상단 ApcHeaderBar, 하단 ApcAlarmBar, 가운데 Body.</summary>
-    internal class TemplateView : UserControl
+    public class ApcTemplateView : UserControl
     {
         protected readonly ApcHeaderBar Header = new ApcHeaderBar();
         protected readonly ApcAlarmBar Alarm = new ApcAlarmBar();
         protected readonly Panel Body = new Panel { Dock = DockStyle.Fill };
 
-        protected TemplateView(string title)
+        protected ApcTemplateView(string title)
         {
             Dock = DockStyle.Fill;
             BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);

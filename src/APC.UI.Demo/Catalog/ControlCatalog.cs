@@ -8,7 +8,7 @@ using APC.UI.Theming;
 namespace APC.UI.Demo.Catalog
 {
     /// <summary>컨트롤 카탈로그: 모든 컨트롤 × 상태를 한 화면에.</summary>
-    internal sealed class ControlCatalog : TemplateView
+    internal sealed class ControlCatalog : ApcTemplateView
     {
         public ControlCatalog() : base("컨트롤 카탈로그 — " + ApcTheme.Current.Name)
         {

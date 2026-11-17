@@ -12,7 +12,7 @@ namespace APC.UI.Demo.Templates
     /// 원본의 빨강(온도)/파랑(습도) 값 색은 상태색과 겹쳐서 쓰지 않는다 — 값은 기본 글자색,
     /// 범위를 벗어날 때만 경고/알람 색을 입힌다. 연결 상태는 빨간 사각형 대신 ApcLamp.
     /// </summary>
-    internal sealed class TempHumiView : TemplateView
+    internal sealed class TempHumiView : ApcTemplateView
     {
         private static readonly object[][] Sensors =
         {

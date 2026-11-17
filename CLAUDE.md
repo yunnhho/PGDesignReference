@@ -19,3 +19,4 @@ APCSOFT 현장 PC 프로그램(WinForms)용 UI 기준 저장소. 사용법·폴�
 ## Git
 - `main`에 직접 커밋하지 않는다. 작업마다 브랜치를 만든다.
 - 커밋 메시지: `<type>: <설명>` (feat, fix, refactor, docs, chore …).
+- `APC.UI`의 public API가 바뀌면 `src/APC.UI/Properties/AssemblyInfo.cs`의 버전을 올린다(고객 프로젝트에 복사된 dll 구분용).

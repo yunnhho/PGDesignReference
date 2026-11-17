@@ -12,7 +12,7 @@ namespace APC.UI.Demo.Templates
     /// references/FailureAnalysis.png 재구성: 설비군 탭 + 시험 모드 안내 + 시계, 2단 헤더 그리드(B1/B2/상태 묶음),
     /// 행 안의 전송·초기화 버튼, 상태 램프 + 문구.
     /// </summary>
-    internal sealed class FailureAnalysisView : TemplateView
+    internal sealed class FailureAnalysisView : ApcTemplateView
     {
         private const int ColSend = 11, ColReset = 12, ColLamp = 13, ColStatusText = 14;
         private static readonly string[] Groups = { "저속 연마기 ST-GR-01~03", "저속 연마기 ST-GR-04~06", "고속 연마기 ST-GB-01~08" };
