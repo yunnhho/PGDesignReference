@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.IO;
 using APC.UI.Tools;
@@ -29,6 +30,17 @@ namespace APC.UI.Checks
             using (var b = new Bitmap(200, 100))
             using (var s = Renderer.SideBySide(a, b))
                 Check(s.Width == 400 && s.Height == 100, "render: side-by-side scales to taller height");
+
+            string old = File.ReadAllText(Fx(@"csproj\old-winforms.csproj"));
+            string once = CsprojPatcher.Patch(old);
+            Check(once.Contains(@"<HintPath>lib\APC.UI.dll</HintPath>") && once.Contains(@"themes\**\*"), "attach: adds reference and theme copy");
+            Check(CsprojPatcher.Patch(once) == once, "attach: idempotent");
+            Check(Throws<InvalidOperationException>(() => CsprojPatcher.Patch(File.ReadAllText(Fx(@"csproj\sdk.csproj"))), "SDK"), "attach: rejects SDK-style");
+            Check(Throws<InvalidOperationException>(() => CsprojPatcher.Patch(File.ReadAllText(Fx(@"csproj\net48-console.csproj"))), "WinForms"), "attach: rejects non-WinForms");
+            string hinted = CsprojPatcher.Patch(File.ReadAllText(Fx(@"csproj\old-with-hintpath.csproj")));
+            Check(hinted.Split(new[] { "Include=\"APC.UI" }, StringSplitOptions.None).Length == 2 && hinted.Contains(@"lib\APC.UI.dll") && !hinted.Contains("shared"), "attach: rewrites existing APC.UI HintPath without duplicating");
+            string v35 = old.Replace("v4.8", "v3.5");
+            Check(Throws<InvalidOperationException>(() => CsprojPatcher.Patch(v35), "v3.5"), "attach: rejects non-4.x framework with actual value");
         }
     }
 }

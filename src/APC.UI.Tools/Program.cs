@@ -11,7 +11,8 @@ namespace APC.UI.Tools
         private const string UsageText =
             "사용법:\n" +
             "  APC.UI.Tools api <dll> <out.md>\n" +
-            "  APC.UI.Tools render <assembly> <type> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]\n";
+            "  APC.UI.Tools render <assembly> <type> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]\n" +
+            "  APC.UI.Tools attach <csproj>\n";
 
         [STAThread]
         private static int Main(string[] args)
@@ -23,6 +24,7 @@ namespace APC.UI.Tools
                 {
                     case "api": return Api(args);
                     case "render": return RenderCmd(args);
+                    case "attach": return Attach(args);
                     default: return Usage();
                 }
             }
@@ -45,6 +47,15 @@ namespace APC.UI.Tools
             if (args.Length != 3) return Usage();
             File.WriteAllText(args[2], ApiWriter.Write(args[1]), new UTF8Encoding(false));
             Console.WriteLine("api -> " + args[2]);
+            return 0;
+        }
+
+        private static int Attach(string[] args)
+        {
+            if (args.Length != 2) return Usage();
+            string patched = CsprojPatcher.Patch(File.ReadAllText(args[1]));   // 실패하면 예외 → 파일은 그대로
+            File.WriteAllText(args[1], patched, new UTF8Encoding(true));
+            Console.WriteLine("attach -> " + args[1]);
             return 0;
         }
 
