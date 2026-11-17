@@ -9,7 +9,7 @@ WinForms(.NET Framework 4.0~4.8) 현장 프로그램용 컨트롤·테마·이�
 도구(`src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe`):
 - `api <dll> <out.md>` — public API 요약. `build.sh`가 `docs/api.md`를 매번 다시 만든다.
 - `render <exe|dll> <형식명> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]` — 화면을 PNG로, 원본 캡처와 나란히 비교본도.
-- `attach <csproj>` — 기존 csproj에 APC.UI 참조와 테마 출력 복사 추가.
+- `attach <csproj> [--check]` — 기존 csproj에 APC.UI 참조와 테마 출력 복사 추가(원래 서식·인코딩 유지). `--check`는 연결 가능 여부만 검사.
 
 직접 할 때:
 
