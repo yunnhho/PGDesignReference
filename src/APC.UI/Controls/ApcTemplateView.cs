@@ -29,7 +29,8 @@ namespace APC.UI.Controls
             Controls.Add(Header);
         }
 
-        protected static int S(int px) { return (int)Math.Round(px * ApcTheme.Scale); }
+        /// <summary>배율 적용 px. ApcForm dialog 등 이 클래스 밖에서는 ApcTheme.Px.</summary>
+        protected static int S(int px) { return ApcTheme.Px(px); }
 
         protected static Label Caption(string text)
         {

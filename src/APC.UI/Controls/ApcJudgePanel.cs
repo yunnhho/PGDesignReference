@@ -29,6 +29,9 @@ namespace APC.UI.Controls
         /// <summary>큰 글자 아래 한 줄(예: "시리얼을 스캔하세요", "하중 19.4 kN > 상한 18.0").</summary>
         [DefaultValue("")] public string SubText { get { return _subText; } set { _subText = value ?? ""; Invalidate(); } }
 
+        /// <summary>큰 글자(OK / NG / READY 등).</summary>
+        public override string Text { get { return base.Text; } set { base.Text = value; } }
+
         protected override void OnTextChanged(EventArgs e) { base.OnTextChanged(e); Invalidate(); }
 
         /// <summary>바탕 위 글자색. 노랑(경고) 바탕에는 흰 글자가 안 읽혀 기본 글자색.</summary>

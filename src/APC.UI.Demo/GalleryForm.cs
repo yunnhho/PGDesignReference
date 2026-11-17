@@ -8,7 +8,7 @@ using APC.UI.Theming;
 
 namespace APC.UI.Demo
 {
-    /// <summary>왼쪽 메뉴(카탈로그 2개 + 기능 템플릿 5개 + 참조 화면), 오른쪽에 선택 화면.</summary>
+    /// <summary>왼쪽 메뉴(카탈로그 2개 + 기능 템플릿 6개 + 참조 화면), 오른쪽에 선택 화면.</summary>
     internal sealed class GalleryForm : ApcForm
     {
         private readonly Panel _host = new Panel { Dock = DockStyle.Fill };
@@ -37,6 +37,7 @@ namespace APC.UI.Demo
             AddMenu(menu, "실적 입력", () => new ProductionView());
             AddMenu(menu, "불량 등록", () => new DefectView());
             AddMenu(menu, "설비 상태", () => new EquipmentView());
+            AddMenu(menu, "판정", () => new JudgeView());
             AddMenu(menu, "이력 조회", () => new HistoryView());
             AddMenu(menu, "[참조] 온습도", () => new TempHumiView());
             AddMenu(menu, "[참조] 연마기 불량방지", () => new FailureAnalysisView());

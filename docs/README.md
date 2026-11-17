@@ -46,7 +46,7 @@ src/APC.UI.Demo/bin/Debug/APC.UI.Demo.exe [--theme sample]   # 갤러리
 
 ```
 assets-src/   SVG 원본(수정은 여기서)      themes/       테마별 theme.json + assets/*.png
-src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 2종 + 기능 템플릿 5종)
+src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 2종 + 기능 템플릿 6종)
 src/APC.UI.Checks/  자가점검 콘솔           tools/        SVG → PNG 렌더러, new-project.sh, smoke.sh, project-template/
 src/APC.UI.Tools/   api·render·attach 도구     skills/       Claude Code 스킬 원본(apc-field-ui)
 Resources/    예전 납품 이미지(참고용, 수정하지 않음)

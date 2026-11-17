@@ -54,6 +54,10 @@ namespace APC.UI.Controls
         internal bool? LastFlashSuccess { get; private set; }
         internal int FlashCount { get; private set; }
 
+        /// <summary>
+        /// 이 폼에서 스캔을 받기 시작한다. 화면(UserControl) 생성자에서는 아직 폼이 없으므로
+        /// 화면의 OnHandleCreated에서 FindForm()으로 부른다: <c>var f = FindForm(); if (f != null) _scan.Attach(f);</c>
+        /// </summary>
         public void Attach(Form host)
         {
             if (host == null) throw new ArgumentNullException("host");
