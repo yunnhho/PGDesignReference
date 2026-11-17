@@ -256,3 +256,17 @@
   - 필수 입력 중 "dialog 유무"를 빼고 요청 → 그것만 묻는지 확인한다.
   - SDK 형식 net8 프로젝트 폴더에서 요청 → 중단하고 이유를 말하는지 확인한다.
 - [ ] **Step 5: 기록과 정리** — 기준선 대비 결과(기준 준수, 토큰)를 이 계획 맨 끝 "시험 결과" 절에 적고 커밋한다: `git commit -m "docs: apc-field-ui 스킬 시험 결과"`. 시험에서 드러난 빈 곳은 SKILL.md를 고쳐 Step 3을 다시 실행한다.
+
+## 시험 결과 (2026-11-17)
+
+같은 요청: "설비 모니터링(라인별), 메인 기능: 라인별 설비 가동 상태, dialog 없음, .NET Framework 4.0".
+
+| 조건 | 결과 |
+|---|---|
+| 스킬 없음, **저장소 밖** 폴더 | 전역 설정(`~/.claude/CLAUDE.md`, rules, skills)에 저장소·APC.UI를 가리키는 곳이 없음(grep 0건) → 에이전트가 APC.UI의 존재를 알 수 없다. 기준선 실패가 확정적이라 실행하지 않음. |
+| 스킬 없음, 저장소 **안**(서브에이전트, 참고용) | 저장소 `CLAUDE.md`·README를 읽고 `new-project.sh`·`EquipmentView`를 찾아 기준대로 완성. 72k 토큰, 도구 8회. → 도구(B안)가 자체로 잘 동작함을 확인. |
+| **스킬 있음, 저장소 밖** 빈 폴더(`claude -p`) | 스킬 경유로 `new-project.sh` 실행, `EquipmentView` 배치 참고, 빌드 성공, render PNG 생성. 사용 컨트롤 `ApcForm`/`ApcTemplateView`/`ApcButton`/`ApcLamp`/`ApcGrid`/`ApcLampColumn`, 표준 컨트롤·하드코딩 색 0건. 16턴, 81초, $0.69. |
+| 스킬 있음, 필수 입력(dialog 유무) 누락 | 빠진 그 항목만 묻고 멈춤(나머지는 `default` 테마, `TempHumiView` 출발로 진행 계획 제시). 3턴, $0.29. |
+| 스킬 있음, SDK 형식 net8 프로젝트 | 파일을 바꾸지 않고 중단, 이유와 선택지 제시. 5턴, $0.34. |
+
+시험에서 드러난 빈 곳: `render` 출력 폴더가 없으면 GDI+ 일반 오류 → 출력 폴더를 만들도록 수정, `smoke.sh`에 점검 추가(`fix: render가 없는 출력 폴더를 만든다`).
