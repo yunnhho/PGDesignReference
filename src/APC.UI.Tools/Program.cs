@@ -17,6 +17,8 @@ namespace APC.UI.Tools
         [STAThread]
         private static int Main(string[] args)
         {
+            // Git Bash·에이전트는 UTF-8로 읽는다. 기본(CP949)이면 한글 오류 메시지가 깨져 원인을 알 수 없다.
+            Console.OutputEncoding = new UTF8Encoding(false);
             if (args.Length == 0) return Usage();
             try
             {

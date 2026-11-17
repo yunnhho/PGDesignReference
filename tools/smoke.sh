@@ -16,6 +16,9 @@ quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "
 
 tools/new-project.sh "$T/bad" 1bad x > /dev/null 2>&1 && fail reject-bad-name
 tools/new-project.sh "$T/app" SmokeApp x > /dev/null 2>&1 && fail reject-existing-csproj
+tools/new-project.sh "$T/dots" Dots ".." > /dev/null 2>&1 && fail reject-dot-customer
+[ -e "$T/dots/.git" ] && fail dot-customer-copied-repo
+"$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainVeiw "$(cygpath -w "$T/app/bin/Debug/themes/샘플 고객")" "$(cygpath -w "$T/x.png")" 2>&1 | grep -q "형식을 찾을 수 없습니다" || fail tools-utf8-message
 
 mkdir -p "$T/old"
 sed 's/v4\.8/v4.0/' src/APC.UI.Checks/fixtures/csproj/old-winforms.csproj > "$T/old/Field.csproj"
