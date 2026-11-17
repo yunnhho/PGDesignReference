@@ -1,3 +1,5 @@
+using System;
+using APC.UI.Controls;
 using APC.UI.Input;
 
 namespace APC.UI.Checks
@@ -19,6 +21,9 @@ namespace APC.UI.Checks
 
         private static void RunScanChecks()
         {
+            if (IntPtr.Size == 8)
+                Check(!Throws<OverflowException>(() => ApcScanBox.WParamOf(new IntPtr(long.MaxValue)), ""), "scan: 64-bit wParam beyond int range does not throw");
+            Check(ApcScanBox.WParamOf(new IntPtr(0x41)) == 0x41, "scan: small wParam (key code) preserved");
             var d = new ScanDetector(50, 4);
             Check(Feed(d, "LOT-0032\r") == "LOT-0032", "fast burst is scan");
             d.Reset(); Check(Feed(d, "abc\r") == null, "short fast input not scan");

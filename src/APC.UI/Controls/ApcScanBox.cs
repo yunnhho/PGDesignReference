@@ -89,7 +89,13 @@ namespace APC.UI.Controls
             if (focused is ApcScanBox && focused != this) return false;   // 포커스된 다른 스캔 박스에 양보
 
             // 처리 시각이 아니라 메시지 발생 시각: UI가 바빠 키가 몰려 처리돼도 사람 입력을 스캔으로 오인하지 않는다.
-            return Process(m.Msg, m.WParam.ToInt32(), (uint)GetMessageTime(), focused as TextBoxBase);
+            return Process(m.Msg, WParamOf(m.WParam), (uint)GetMessageTime(), focused as TextBoxBase);
+        }
+
+        /// <summary>64비트에서 WParam은 int 범위를 넘을 수 있다(타이머·포인터 메시지). 키 메시지가 쓰는 하위 32비트만 취한다.</summary>
+        internal static int WParamOf(IntPtr wParam)
+        {
+            return unchecked((int)wParam.ToInt64());
         }
 
         /// <summary>필터 본체. true = 메시지를 삼킴. timeMs = 메시지 발생 시각.</summary>
