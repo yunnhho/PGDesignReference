@@ -23,8 +23,12 @@ if (!existsSync(src)) throw new Error(`source folder not found: ${src}`);
 if (override && !existsSync(override)) throw new Error(`override folder not found: ${override}`);
 mkdirSync(out, { recursive: true });
 
+const svgs = dir => readdirSync(dir).filter(f => f.endsWith('.svg'));
+// override에만 있는 새 이름(icon_* 등)도 렌더한다.
+const files = [...new Set([...svgs(src), ...(override ? svgs(override) : [])])].sort();
+
 let count = 0;
-for (const file of readdirSync(src).filter(f => f.endsWith('.svg'))) {
+for (const file of files) {
   const name = basename(file, '.svg');
   const chosen = override && existsSync(join(override, file)) ? join(override, file) : join(src, file);
   const svg = readFileSync(chosen, 'utf8');
