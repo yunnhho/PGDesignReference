@@ -60,7 +60,10 @@ cp "$REPO/src/APC.UI/bin/Release/APC.UI.dll" "$REPO/src/APC.UI/bin/Release/APC.U
 # 2. 테마: 이미 있으면 프로젝트 쪽 수정을 지키기 위해 건드리지 않는다.
 if [ ! -d "$DEST/themes/$CUSTOMER" ]; then
   SRC="$REPO/themes/$CUSTOMER"
-  [ -d "$SRC" ] || SRC="$REPO/themes/default"
+  if [ ! -d "$SRC" ]; then
+    SRC="$REPO/themes/default"
+    echo "알림: 저장소에 themes/$CUSTOMER 이 없어 themes/default 를 복사했습니다(고객사 색·로고는 $DEST/themes/$CUSTOMER 에서 바꾼다)."
+  fi
   mkdir -p "$DEST/themes"
   cp -r "$SRC" "$DEST/themes/$CUSTOMER" || die "테마 복사 실패"
 fi

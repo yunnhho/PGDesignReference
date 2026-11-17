@@ -7,15 +7,15 @@ namespace APC.UI.Demo.Templates
     /// <summary>이력 조회: 기간 필터 + 그리드 + 엑셀 내보내기(자리만, 비활성).</summary>
     internal sealed class HistoryView : ApcTemplateView
     {
-        private readonly DateTimePicker _from = new DateTimePicker { Format = DateTimePickerFormat.Short };
-        private readonly DateTimePicker _to = new DateTimePicker { Format = DateTimePickerFormat.Short };
+        private readonly ApcDateBox _from = new ApcDateBox();
+        private readonly ApcDateBox _to = new ApcDateBox();
         private readonly ApcGrid _grid = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = true };
 
         public HistoryView() : base("이력 조회")
         {
             _from.Value = DateTime.Today.AddDays(-7);
             _to.Value = DateTime.Today;
-            _from.Width = _to.Width = S(130);
+            _from.Width = _to.Width = S(160);
 
             var search = Button("조회", ApcButtonVariant.Primary, 90);
             search.Click += (s, e) => Search();

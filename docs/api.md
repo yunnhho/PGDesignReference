@@ -1,4 +1,4 @@
-# APC.UI API (v1.1.0.0)
+# APC.UI API (v1.2.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -29,12 +29,36 @@
 
 - Normal, Primary, Danger
 
+## ApcComboBox
+
+`APC.UI.Controls` · class : ComboBox
+
+테마 선택 목록(드롭다운 전용, 직접 입력 없음). 닫힌 상태는 입력칸 모양 + 오른쪽 그라데이션 화살표 버튼으로 직접 그리고, 펼친 목록은 항목 높이 28px×배율 이상(장갑 낀 손가락·마우스 모두 누르기 쉽게). 높이는 ItemHeight로 정해진다.
+- `ApcComboBox()`
+
+## ApcDateBox
+
+`APC.UI.Controls` · class : UserControl
+
+날짜 입력: 입력칸(yyyy-MM-dd) + 달력 버튼. 버튼을 누르면 달력이 펼쳐지고, 날짜를 누르면 닫힌다. 직접 입력은 yyyy-MM-dd / yyyyMMdd를 받아 Enter 또는 칸을 떠날 때 확정, 틀리면 이전 값. ↑↓ 키는 하루씩.
+- `ApcDateBox()`
+- `ApcTextBox TextBox { get; }`
+- `DateTime Value { get; set; }`
+- `const string Format`
+- `event EventHandler ValueChanged`
+- `protected void OnValueChanged(EventArgs e)`
+- `static readonly DateTime MaxDate` — 받는 범위. 달력 이동·하루 이동이 DateTime 끝에서 예외를 내지 않게.
+- `static readonly DateTime MinDate` — 받는 범위. 달력 이동·하루 이동이 DateTime 끝에서 예외를 내지 않게.
+- `void Commit()` — 입력칸 글자를 확정한다. 날짜가 아니면 이전 값을 다시 보여 준다.
+
 ## ApcDialog
 
 `APC.UI.Controls` · static class
 
 되돌릴 수 없는 동작(삭제, 작업 종료 등) 확인. 기본 포커스와 Enter·Esc는 모두 '취소' — 바코드 스캔의 Enter나 습관적 Enter로 실수 확인되지 않게 한다.
-- `static bool Confirm(IWin32Window owner, string message)`
+- `static bool Confirm(IWin32Window owner, string message)` — 파괴적 동작 확인: 확인 버튼은 빨간 "확인".
+- `static bool Confirm(IWin32Window owner, string message, string okText, ApcButtonVariant okVariant)` — 확인 버튼 글자·종류 지정. 저장처럼 위험하지 않은 확인은 ("저장", Primary).
+- `static void Alert(IWin32Window owner, string message)` — 알림(입력 오류 안내 등). 버튼은 "확인" 하나, Enter·Esc로 닫힌다.
 
 ## ApcForm
 
@@ -66,6 +90,15 @@
 - `string StatusText { get; set; }`
 - `string Title { get; set; }`
 
+## ApcJudgePanel
+
+`APC.UI.Controls` · class : Control
+
+판정 표시판: 상태색 바탕에 큰 글자(OK / NG / READY 등) + 아래 한 줄 안내. 판정 화면의 가장 큰 요소로 쓴다. OK=Run, NG=Alarm, 대기=Stop, 확인 필요=Warn. 글자 크기는 높이에 맞춘다.
+- `ApcJudgePanel()`
+- `StatusKind Status { get; set; }`
+- `string SubText { get; set; }` — 큰 글자 아래 한 줄(예: "시리얼을 스캔하세요", "하중 19.4 kN > 상한 18.0").
+
 ## ApcLamp
 
 `APC.UI.Controls` · class : Control
@@ -90,9 +123,25 @@
 값이 StatusKind인 셀을 상태 램프 이미지로 그리는 컬럼. 그 외 값(null 등)은 빈 셀.
 - `ApcLampColumn()`
 
+## ApcNumericBox
+
+`APC.UI.Controls` · class : UserControl
+
+숫자 입력: [−] 입력칸 [+]. 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정. 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
+- `ApcNumericBox()`
+- `ApcTextBox TextBox { get; }` — 안쪽 입력칸(포커스 지정·스캔 복원 대상).
+- `decimal Increment { get; set; }`
+- `decimal Maximum { get; set; }`
+- `decimal Minimum { get; set; }`
+- `decimal Value { get; set; }`
+- `event EventHandler ValueChanged`
+- `int DecimalPlaces { get; set; }`
+- `protected void OnValueChanged(EventArgs e)`
+- `void Commit()` — 입력칸 글자를 확정한다. 숫자가 아니면 이전 값을 다시 보여 준다.
+
 ## ApcScanBox
 
-`APC.UI.Controls` · class : TextBox
+`APC.UI.Controls` · class : ApcTextBox
 
 바코드 입력란. Attach(form) 하면 그 폼 어디에 포커스가 있든 스캔을 받는다. 스캔으로 판정되면 포커스 칸을 버스트 시작 전 값으로 되돌리고 코드를 여기로 옮긴 뒤 Scanned를 낸다. 스캔의 Enter는 삼켜서 폼의 기본 버튼(AcceptButton)을 누르지 않게 한다. 피드백은 Scanned 처리 후 한 번: e.Accepted에 따라 성공/실패.
 - `ApcScanBox()`
@@ -100,6 +149,15 @@
 - `event EventHandler<ScanEventArgs> Scanned`
 - `void Attach(Form host)`
 - `void Flash(bool success)` — 성공 = 초록 플래시 + 짧은 비프, 실패 = 빨강 플래시 + 경고음.
+
+## ApcStatusTile
+
+`APC.UI.Controls` · class : Control
+
+설비 타일: 램프 + 설비명 + 상태 문구. 누르면 Click(상세 dialog 열기 등). 마우스를 올리거나 포커스면 파란 테두리, 알람이면 굵은 알람색 테두리. Tab으로 옮겨 Enter·Space로도 누른다.
+- `ApcStatusTile()`
+- `StatusKind Status { get; set; }`
+- `string StatusText { get; set; }` — 설비명 아래 한 줄(예: "가동 · 정상", "알람 · 온도 상한 초과").
 
 ## ApcTemplateView
 
@@ -109,11 +167,46 @@
 - `protected ApcTemplateView(string title)`
 - `protected readonly ApcAlarmBar Alarm`
 - `protected readonly ApcHeaderBar Header`
-- `protected readonly Panel Body`
+- `protected readonly Panel Body` — 내용 영역(Padding 16px). 도킹 순서: 같은 Dock(Top 등)끼리는 나중에 Add한 것이 바깥(위)에 온다. Fill을 먼저 Add하고, Top 줄들은 화면 아래쪽 것부터 위쪽 것 순서로 Add한다(또는 SetChildIndex(fill, 0)).
 - `protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)`
 - `protected static FlowLayoutPanel Row(params Control[] controls)` — 왼쪽→오른쪽으로 쌓는 한 줄(필터·버튼 줄).
 - `protected static Label Caption(string text)`
 - `protected static int S(int px)`
+
+## ApcTextBox
+
+`APC.UI.Controls` · class : TextBox
+
+테마 입력칸. 오목한 테두리·포커스 테두리는 비클라이언트 영역에 직접 그리고, 글자는 높이 가운데에 온다. 높이를 자유롭게 줄 수 있다(기본 34px×배율, 최소 28px×배율). TextBox를 상속하므로 Text·ReadOnly·MaxLength 등은 그대로. Multiline이면 스크롤바 자리가 필요해 Windows 기본 한 줄 테두리로 돌아간다.
+- `ApcTextBox()`
+- `const int BaseHeight`
+- `protected void ResetFieldColor()` — 바탕색을 상태(사용 가능·읽기 전용)에 맞춘다. 스캔 플래시 등으로 바꾼 색을 되돌릴 때도 쓴다.
+
+## ApcTrendChart
+
+`APC.UI.Controls` · class : Control
+
+추이 꺾은선. SetValues로 시간순 값(왼쪽=과거), XLabels로 가로축 글자(양끝·가운데 등, 고르게 배치). Reference = 설정값(회색 점선), UpperLimit/LowerLimit = 상·하한(알람색 점선). 세로축은 값과 기준선을 모두 담게 자동으로 잡는다.
+- `ApcTrendChart()`
+- `double? LowerLimit { get; set; }`
+- `double? Reference { get; set; }` — null·NaN·무한대 = 선 없음.
+- `double? UpperLimit { get; set; }`
+- `string[] XLabels { get; set; }`
+- `void SetValues(IEnumerable<double> values)`
+
+## ApcValueCard
+
+`APC.UI.Controls` · class : Control
+
+현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 "--".
+- `ApcValueCard()`
+- `HorizontalAlignment ValueAlign { get; set; }`
+- `StatusKind Status { get; set; }`
+- `bool ShowLamp { get; set; }`
+- `string Footer { get; set; }` — 아래 한 줄. 비우면 줄이 없다.
+- `string Title { get; set; }`
+- `string Unit { get; set; }`
+- `string Value { get; set; }`
 
 ## ScanEventArgs
 

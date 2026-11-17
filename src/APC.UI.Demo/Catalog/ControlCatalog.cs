@@ -20,7 +20,11 @@ namespace APC.UI.Demo.Catalog
             alarmDemo.Click += (s, e) => Alarm.Push("테스트 알람 #" + (++n));
             var confirm = Button("확인창 열기", ApcButtonVariant.Normal, 130);
             confirm.Click += (s, e) => MessageBox.Show(ApcDialog.Confirm(FindForm(), "정말 삭제할까요? 되돌릴 수 없습니다.") ? "확인" : "취소");
-            Body.Controls.Add(Row(Caption("알람 띠 / 확인창"), alarmDemo, confirm));
+            var save = Button("저장 확인창", ApcButtonVariant.Normal, 130);
+            save.Click += (s, e) => MessageBox.Show(ApcDialog.Confirm(FindForm(), "레시피를 저장할까요?", "저장", ApcButtonVariant.Primary) ? "저장" : "취소");
+            var alert = Button("알림창", ApcButtonVariant.Normal, 110);
+            alert.Click += (s, e) => ApcDialog.Alert(FindForm(), "하중 하한이 상한보다 큽니다.");
+            Body.Controls.Add(Row(Caption("알람 띠 / 확인창"), alarmDemo, confirm, save, alert));
 
             var grid = new ApcGrid { Height = S(150), Dock = DockStyle.Top, ReadOnly = true };
             grid.Columns.Add(new ApcLampColumn());
@@ -30,6 +34,23 @@ namespace APC.UI.Demo.Catalog
             foreach (StatusKind k in Enum.GetValues(typeof(StatusKind))) grid.Rows.Add(k, "LOT-0" + (int)k, k.ToString());
             Body.Controls.Add(grid);
             Body.Controls.Add(Row(Caption("그리드 (ApcGrid + ApcLampColumn)")));
+
+            var combo = new ApcComboBox { Width = S(160) };
+            combo.Items.AddRange(new object[] { "HB-6204", "HB-6205", "HB-6306" });
+            combo.SelectedIndex = 0;
+            var comboOff = new ApcComboBox { Width = S(120), Enabled = false };
+            comboOff.Items.Add("비활성");
+            comboOff.SelectedIndex = 0;
+            var num = new ApcNumericBox { Minimum = 0, Maximum = 50, DecimalPlaces = 1, Increment = 0.5m, Value = 18 };
+            var date = new ApcDateBox();
+            foreach (Control c in new Control[] { combo, comboOff, num, date }) c.Margin = new Padding(0, 0, S(8), 0);
+            Body.Controls.Add(Row(Caption("선택·숫자·날짜"), combo, comboOff, num, date));
+
+            var text = new ApcTextBox { Width = S(200), Text = "입력칸" };
+            var readOnly = new ApcTextBox { Width = S(160), Text = "읽기 전용", ReadOnly = true };
+            var off = new ApcTextBox { Width = S(160), Text = "비활성", Enabled = false };
+            foreach (Control c in new Control[] { text, readOnly, off }) c.Margin = new Padding(0, 0, S(8), 0);
+            Body.Controls.Add(Row(Caption("입력칸"), text, readOnly, off));
 
             var scan = new ApcScanBox { Width = S(260) };
             var ok = Button("성공 플래시", ApcButtonVariant.Normal, 120);

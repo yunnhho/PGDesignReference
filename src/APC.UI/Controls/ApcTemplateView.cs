@@ -10,6 +10,10 @@ namespace APC.UI.Controls
     {
         protected readonly ApcHeaderBar Header = new ApcHeaderBar();
         protected readonly ApcAlarmBar Alarm = new ApcAlarmBar();
+        /// <summary>
+        /// 내용 영역(Padding 16px). 도킹 순서: 같은 Dock(Top 등)끼리는 나중에 Add한 것이 바깥(위)에 온다.
+        /// Fill을 먼저 Add하고, Top 줄들은 화면 아래쪽 것부터 위쪽 것 순서로 Add한다(또는 SetChildIndex(fill, 0)).
+        /// </summary>
         protected readonly Panel Body = new Panel { Dock = DockStyle.Fill };
 
         protected ApcTemplateView(string title)
