@@ -43,7 +43,8 @@ namespace APC.UI.Checks
             Check(Throws<InvalidOperationException>(() => CsprojPatcher.Patch(v35), "v3.5"), "attach: rejects non-4.x framework with actual value");
 
             Check(KeepsLinesInOrder(old, once), "attach: keeps original lines and indentation (no reformat)");
-            Check(once.Contains("\n    <Reference Include=\"APC.UI\">\n      <HintPath>"), "attach: new reference indented like siblings");
+            // fixture 줄바꿈은 git 체크아웃 설정(autocrlf)에 따라 LF/CRLF가 된다 → 비교는 LF로.
+            Check(once.Replace("\r\n", "\n").Contains("\n    <Reference Include=\"APC.UI\">\n      <HintPath>"), "attach: new reference indented like siblings");
             string crlf = old.Replace("\r\n", "\n").Replace("\n", "\r\n");
             string crlfOnce = CsprojPatcher.Patch(crlf);
             Check(crlfOnce == CsprojPatcher.Patch(crlfOnce) && !crlfOnce.Replace("\r\n", "").Contains("\n"), "attach: CRLF file stays pure CRLF and idempotent");
