@@ -20,7 +20,7 @@ Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/
 3. `Main`에서 폼을 띄우기 전에 `ApcTheme.Load(@"...\themes\<고객사>")`를 호출한다. `ThemeException`이 나면 메시지에 파일과 항목이 적혀 있다.
 4. 폼은 `ApcForm`을 상속하고 표준 입력·표시 컨트롤 대신 Apc 컨트롤을 쓴다. 삭제 같은 되돌릴 수 없는 동작 앞에는 `ApcDialog.Confirm(this, "...")`, 저장 확인은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`, 입력 오류 안내는 `ApcDialog.Alert(this, "...")`.
    - 입력: `ApcButton` / `ApcTextBox` / `ApcScanBox`(바코드) / `ApcComboBox` / `ApcNumericBox` / `ApcDateBox`
-   - 표시: `ApcGrid` + `ApcLampColumn` / `ApcLamp` / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
+   - 표시: `ApcGrid` + `ApcLampColumn` / `ApcLamp` / `ApcGroup`(설정 묶음) / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
    - `Label`과 배치용 패널(`Panel`, `FlowLayoutPanel`, `TableLayoutPanel`)은 표준 그대로 쓴다.
 5. 앱 매니페스트에 `<dpiAware>true</dpiAware>`를 넣는다(`src/APC.UI.Demo/app.manifest` 참고).
 
@@ -46,7 +46,7 @@ src/APC.UI.Demo/bin/Debug/APC.UI.Demo.exe [--theme sample]   # 갤러리
 
 ```
 assets-src/   SVG 원본(수정은 여기서)      themes/       테마별 theme.json + assets/*.png
-src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 2종 + 기능 템플릿 6종)
+src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 3종 + 기능 템플릿 6종 + dialog 템플릿 5종)
 src/APC.UI.Checks/  자가점검 콘솔           tools/        SVG → PNG 렌더러, new-project.sh, smoke.sh, project-template/
 src/APC.UI.Tools/   api·render·attach 도구     skills/       Claude Code 스킬 원본(apc-field-ui)
 Resources/    예전 납품 이미지(참고용, 수정하지 않음)

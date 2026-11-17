@@ -1,4 +1,4 @@
-# APC.UI API (v1.3.1.0)
+# APC.UI API (v1.4.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -79,6 +79,15 @@
 
 테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택. 사용자가 표를 누르거나 키로 움직이기 전에는 첫 행이 저절로 선택되지 않는다(CurrentRow = null) — "선택한 행에 대해" 동작하는 버튼은 CurrentRow가 null이면 아무것도 하지 않게 둔다.
 - `ApcGrid()`
+- `bool ClearInitialSelection { get; set; }` — true(기본)면 사용자가 누르기 전엔 선택 행이 없다. 입력 표(스캔으로 칸을 채우는 dialog 등)처럼 앱이 CurrentCell을 정해 두고 바로 입력받아야 하면 false.
+
+## ApcGroup
+
+`APC.UI.Controls` · class : Panel
+
+제목 띠가 있는 묶음 상자(설정 dialog의 블록 등, 표준 GroupBox 대신). 제목 띠는 값 카드와 같은 그리드 헤더 그라데이션. 안에 넣는 컨트롤은 Padding(제목 띠 아래 + 여백) 안쪽에 배치된다 — Dock이나 FlowLayoutPanel(Dock=Fill)을 쓰면 된다.
+- `ApcGroup()`
+- `string Text { get; set; }` — 제목 띠 글자.
 
 ## ApcHeaderBar
 

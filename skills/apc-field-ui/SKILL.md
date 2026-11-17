@@ -54,7 +54,15 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
 - 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 배율 적용: 화면(`ApcTemplateView`)에서는 `S(px)`, dialog(`ApcForm`) 등 그 밖에서는 `ApcTheme.Px(px)`.
 - `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다. `MainForm.TitleText`도 화면 이름으로 바꾼다(기본값은 영문 프로젝트명).
-- dialog는 템플릿에서 출발한다: 보기용(상태 줄 + 표 + 추이 + 닫기)은 `EquipmentDetailDialog`, 입력 폼(이름표+입력칸 행, 검증 `Alert` → `Confirm` → 결과 속성 → OK)은 `RecipeDialog`.
+- dialog는 템플릿에서 출발한다(모두 `src/APC.UI.Demo/Templates/`, 갤러리 "dialog 템플릿"에서 열어 볼 수 있다):
+
+| dialog 유형 | 템플릿 |
+|---|---|
+| 보기용 상세(상태 줄 + 센서 표 + 추이 + 닫기) | `EquipmentDetailDialog` |
+| 입력 폼(이름표+입력칸 행, 검증 `Alert` → `Confirm("저장")` → 결과 속성 → OK) | `RecipeDialog` |
+| 관리자 비밀번호 확인(설정 진입 전 등) | `AdminPasswordDialog` |
+| 칸·슬롯별 LOT 입력(표에 바로 스캔, 칸 수 가변, 빈 칸 Alert) | `LotInputDialog` |
+| 통신·장비 설정(블록별 `ApcGroup` 묶음 + 공통 설정 + 비밀번호 변경) | `SettingsDialog` |
 - **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
 
 | 화면 요소 | 컨트롤 |
@@ -68,6 +76,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | OK/NG 판정 크게 | `ApcJudgePanel`(Text=큰 글자·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
 | 추이 그래프 | `ApcTrendChart`(`SetValues`, XLabels, Reference, UpperLimit/LowerLimit) |
 | 상태 램프 | `ApcLamp` |
+| 설정 묶음(제목 있는 상자, GroupBox 대신) | `ApcGroup`(Text=제목, 안은 Dock/FlowLayoutPanel) |
+| 입력 표(칸에 바로 입력·스캔) | `ApcGrid { ReadOnly = false, ClearInitialSelection = false }` + 열별 `ReadOnly`(읽기 전용 열은 자동 회색) |
 
 - **표준 컨트롤 금지**: `Button`/`TextBox`/`ComboBox`/`NumericUpDown`/`DateTimePicker`/`DataGridView`/`Form`과 `Control`을 상속해 직접 그린 카드·타일·그래프를 만들지 않는다. 위 표의 Apc 컨트롤을 쓴다. 표준으로 쓰는 것은 `Label`과 배치용 `Panel`/`FlowLayoutPanel`/`TableLayoutPanel`뿐. 표에 없는 요소가 꼭 필요하면 만들지 말고 사용자에게 알린다(라이브러리에 추가할 후보).
 - 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
