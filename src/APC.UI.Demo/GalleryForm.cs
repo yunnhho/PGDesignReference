@@ -37,6 +37,8 @@ namespace APC.UI.Demo
             AddMenu(menu, "불량 등록", () => new DefectView());
             AddMenu(menu, "설비 상태", () => new EquipmentView());
             AddMenu(menu, "이력 조회", () => new HistoryView());
+            AddMenu(menu, "[참조] 온습도", () => new TempHumiView());
+            AddMenu(menu, "[참조] 연마기 불량방지", () => new FailureAnalysisView());
 
             Controls.Add(_host);
             Controls.Add(menu);

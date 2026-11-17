@@ -73,7 +73,7 @@ namespace APC.UI.Theming
             ColorField(t.Colors.Text, path, "colors.text");
             ColorField(t.Colors.TextMuted, path, "colors.textMuted");
             ColorField(t.Colors.TextInverse, path, "colors.textInverse");
-            ColorField(t.Colors.GridAltRow, path, "colors.gridAltRow");
+            ColorField(t.Colors.GridLine, path, "colors.gridLine");
             ColorField(t.Colors.GridSelected, path, "colors.gridSelected");
 
             if (t.ButtonSlice == null || t.ButtonSlice.Length != 4) Fail(path, "buttonSlice", "[좌,위,우,아래] 4개 값 필요");

@@ -29,7 +29,7 @@ namespace APC.UI.Theming
         [DataMember(Name = "text")] public string Text { get; set; }
         [DataMember(Name = "textMuted")] public string TextMuted { get; set; }
         [DataMember(Name = "textInverse")] public string TextInverse { get; set; }
-        [DataMember(Name = "gridAltRow")] public string GridAltRow { get; set; }
+        [DataMember(Name = "gridLine")] public string GridLine { get; set; }
         [DataMember(Name = "gridSelected")] public string GridSelected { get; set; }
     }
 

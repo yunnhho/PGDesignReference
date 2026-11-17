@@ -35,4 +35,6 @@ assets-src/   SVG 원본(수정은 여기서)      themes/       테마별 theme
 src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 + 기능 템플릿 5종)
 src/APC.UI.Checks/  자가점검 콘솔           tools/        SVG → PNG 렌더러
 Resources/    예전 납품 이미지(참고용, 수정하지 않음)
+references/   기존 현장 프로그램 화면 캡처(UI 레퍼런스)
+references/redesign/  위 화면을 APC.UI로 재구성한 결과(*.apcui.png)와 원본 비교(*.compare.png)
 ```

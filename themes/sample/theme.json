@@ -19,7 +19,7 @@
     "text": "#1F2937",
     "textMuted": "#6B7280",
     "textInverse": "#FFFFFF",
-    "gridAltRow": "#F3F4F6",
+    "gridLine": "#F3F4F6",
     "gridSelected": "#CFE5D8",
     "titleBar": [
       "#F1F4F2",

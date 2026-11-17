@@ -14,6 +14,7 @@ namespace APC.UI.Checks
             {
                 Check(grid.RowTemplate.Height >= ApcTheme.MinHeight, "grid row height >= min");
                 Check(grid.SelectionMode == DataGridViewSelectionMode.FullRowSelect && !grid.AllowUserToAddRows, "grid defaults");
+                Check(grid.AlternatingRowsDefaultCellStyle.BackColor.IsEmpty, "grid rows use one background color (no alternating)");
 
                 var col = new ApcLampColumn { Name = "status" };
                 grid.Columns.Add(col);

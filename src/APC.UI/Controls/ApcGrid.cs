@@ -6,7 +6,7 @@ using APC.UI.Theming;
 
 namespace APC.UI.Controls
 {
-    /// <summary>테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 짝수행 색, 행 전체 선택.</summary>
+    /// <summary>테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택.</summary>
     public class ApcGrid : DataGridView
     {
         public ApcGrid()
@@ -34,11 +34,10 @@ namespace APC.UI.Controls
             var text = ApcTheme.C(c.Text);
             Font = ApcTheme.GetFont();
             BackgroundColor = Color.White;
-            GridColor = ApcTheme.C(c.GridAltRow);
+            GridColor = ApcTheme.C(c.GridLine);
             DefaultCellStyle.ForeColor = text;
             DefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridSelected);
             DefaultCellStyle.SelectionForeColor = text;
-            AlternatingRowsDefaultCellStyle.BackColor = ApcTheme.C(c.GridAltRow);
             ColumnHeadersDefaultCellStyle.Font = ApcTheme.GetFont(FontStyle.Bold);
             ColumnHeadersDefaultCellStyle.ForeColor = text;
             ColumnHeadersDefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridHeader[1]);
