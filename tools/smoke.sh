@@ -17,6 +17,14 @@ quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "
 tools/new-project.sh "$T/bad" 1bad x > /dev/null 2>&1 && fail reject-bad-name
 tools/new-project.sh "$T/app" SmokeApp x > /dev/null 2>&1 && fail reject-existing-csproj
 tools/new-project.sh "$T/dots" Dots ".." > /dev/null 2>&1 && fail reject-dot-customer
+tools/new-project.sh "$T/kw" class x > /dev/null 2>&1 && fail reject-keyword-name
+tools/new-project.sh "$T/fw" FwApp x --framework v4.9 > /dev/null 2>&1 && fail reject-unknown-framework
+mkdir -p "$T/broken/Program.cs"
+tools/new-project.sh "$T/broken" Broken x > /dev/null 2>&1 && fail template-copy-failure-reported
+mkdir -p "$T/sdk"
+cp src/APC.UI.Checks/fixtures/csproj/sdk.csproj "$T/sdk/Field.csproj"
+tools/new-project.sh "$T/sdk" Field x --into-existing > /dev/null 2>&1 && fail reject-sdk-into-existing
+[ -e "$T/sdk/lib" ] || [ -e "$T/sdk/themes" ] && fail rejected-into-existing-left-files
 [ -e "$T/dots/.git" ] && fail dot-customer-copied-repo
 "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainVeiw "$(cygpath -w "$T/app/bin/Debug/themes/샘플 고객")" "$(cygpath -w "$T/x.png")" 2>&1 | grep -q "형식을 찾을 수 없습니다" || fail tools-utf8-message
 
