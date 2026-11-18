@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -13,45 +13,30 @@ namespace APC.UI.Demo.Templates
     /// </summary>
     internal sealed class RecipeDialog : ApcForm
     {
-        private const int RowH = 48, LabelW = 150, FieldW = 230;
-
         private readonly ApcTextBox _name = new ApcTextBox();
         private readonly ApcNumericBox _loadMax = Number(1), _loadMin = Number(1), _dispMax = Number(2), _dispMin = Number(2), _speed = Number(1);
-        private int _y;
 
         public RecipeDialog() : this("6205-2RS", 12.0m, 8.0m, 5.20m, 4.80m, 2.0m) { }
 
         public RecipeDialog(string model, decimal loadMax, decimal loadMin, decimal dispMax, decimal dispMin, decimal speed)
         {
-            TitleText = "레시피 편집";
-            Resizable = false;
-            MinimizeBox = false;
-            ShowInTaskbar = false;
-            StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(ApcTheme.Px(460), ApcTheme.Px(410));   // 마지막 입력 줄 아래 버튼까지 빈 공간 없이
+            SetupDialog("레시피 편집", 460);   // 높이는 내용으로 자동
 
             _name.Text = model;
             _loadMax.Value = loadMax; _loadMin.Value = loadMin;
             _dispMax.Value = dispMax; _dispMin.Value = dispMin;
             _speed.Value = speed;
 
-            _y = ContentBounds.Top + ApcTheme.Px(16);
-            AddRow("모델명", _name);
-            AddRow("하중 상한 (kN)", _loadMax);
-            AddRow("하중 하한 (kN)", _loadMin);
-            AddRow("변위 상한 (mm)", _dispMax);
-            AddRow("변위 하한 (mm)", _dispMin);
-            AddRow("압입 속도 (mm/s)", _speed);
+            AddFieldRow("모델명", _name);
+            AddFieldRow("하중 상한 (kN)", _loadMax);
+            AddFieldRow("하중 하한 (kN)", _loadMin);
+            AddFieldRow("변위 상한 (mm)", _dispMax);
+            AddFieldRow("변위 하한 (mm)", _dispMin);
+            AddFieldRow("압입 속도 (mm/s)", _speed);
 
-            int pad = ApcTheme.Px(16), bw = ApcTheme.Px(110), bh = ApcTheme.Px(40);
             var save = new ApcButton { Text = "저장", Variant = ApcButtonVariant.Primary };
-            var cancel = new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel };
-            save.SetBounds(ClientSize.Width - pad - bw, ClientSize.Height - pad - bh, bw, bh);
-            cancel.SetBounds(save.Left - ApcTheme.Px(8) - bw, save.Top, bw, bh);
             save.Click += (s, e) => Save();
-            Controls.Add(cancel);
-            Controls.Add(save);
-            CancelButton = cancel;   // Esc = 취소. Enter는 기본 버튼 없음(스캔 Enter로 저장되지 않게)
+            SetFooter(new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel }, save);   // Esc = 취소. Enter는 기본 버튼 없음(스캔 Enter로 저장되지 않게)
         }
 
         public string Model { get; private set; }
@@ -60,21 +45,6 @@ namespace APC.UI.Demo.Templates
         public decimal DispMax { get; private set; }
         public decimal DispMin { get; private set; }
         public decimal Speed { get; private set; }
-
-        private void AddRow(string caption, Control field)
-        {
-            int x = ApcTheme.Px(24), h = ApcTheme.Px(ApcTextBox.BaseHeight);
-            var label = new Label
-            {
-                Text = caption, AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Transparent,
-                Font = ApcTheme.GetFont(), ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text),
-                Bounds = new Rectangle(x, _y, ApcTheme.Px(LabelW), h),
-            };
-            field.SetBounds(x + ApcTheme.Px(LabelW), _y, ApcTheme.Px(FieldW), h);
-            Controls.Add(label);
-            Controls.Add(field);
-            _y += ApcTheme.Px(RowH);
-        }
 
         private void Save()
         {

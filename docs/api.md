@@ -76,7 +76,16 @@
 - `bool Resizable { get; set; }`
 - `int ResizeGrip { get; }` — 가장자리 리사이즈 감지 폭(px).
 - `int TitleBarHeight { get; }`
+- `protected ApcGroup AddGroup(string title)` — 제목 있는 묶음(ApcGroup). 행은 AddFieldRow(group, ...)로 넣는다.
 - `protected CreateParams CreateParams { get; }`
+- `protected Label SectionTitle(string text)` — 구획 제목(굵게). AddContent로 넣으면 아래 요소와의 간격이 좁다.
+- `protected static Label FieldCaption(string text)` — 행 안 trailing 이름표(보통 굵기, 글자 폭).
+- `protected void AddContent(Control c)` — 표·판정판 등 자유 요소. 높이는 c.Height(ApcTheme.Px로 지정), 폭은 내용 폭.
+- `protected void AddContentFill(Control c)` — 남은 높이를 채우는 요소(그래프 등). SetupDialog에 높이를 줘야 하고 한 dialog에 하나만.
+- `protected void AddFieldRow(ApcGroup group, string caption, Control field, params Control[] trailing)` — 묶음 안 한 줄. 이름표 열은 묶음 밖 행과 같은 위치에 맞춘다.
+- `protected void AddFieldRow(string caption, Control field, params Control[] trailing)` — 이름표 + 입력칸 한 줄. trailing이 없으면 입력칸이 남은 폭을 채우고, 있으면 모두 자기 Width로 왼→오.
+- `protected void SetFooter(ApcButton cancel, ApcButton confirm, params ApcButton[] left)` — 하단 버튼 줄: 오른쪽 [취소][확정](cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).
+- `protected void SetupDialog(string title, int width, int height = 0)` — dialog 기본 속성과 크기(배율 전 px). height 0 = 내용으로 자동(AddContentFill을 쓰면 필수).
 - `string TitleText { get; set; }`
 
 ## ApcGrid
@@ -257,6 +266,20 @@
 - `int Length { get; }` — 현재 쌓인 버스트 길이. Feed 직후 1이면 새 버스트가 시작된 것.
 - `string Feed(char c, long timestampMs)` — 글자 하나를 넣는다. Enter에서 스캔으로 판정되면 코드, 아니면 null.
 - `void Reset()`
+
+## ApcLayout
+
+`APC.UI.Theming` · static class
+
+화면·dialog 공통 치수(배율 전 px, 쓸 때 ApcTheme.Px). ApcTemplateView·ApcForm dialog 헬퍼가 쓰고, APC.UI.Tools의 LayoutLint가 같은 값으로 점검한다(값을 바꾸면 LayoutLint 상수도 함께).
+- `const int FieldHeight` — 입력칸·이름표 높이.
+- `const int FooterButtonHeight`
+- `const int FooterButtonWidth`
+- `const int GroupGap` — 묶음(ApcGroup)·블록 사이, 내용과 하단 버튼 줄 사이.
+- `const int ItemGap` — 한 줄 안 요소 사이(버튼·입력칸).
+- `const int LabelGap` — 이름표 열과 입력칸 사이.
+- `const int Pad` — dialog·화면 바깥 여백.
+- `const int RowGap` — 입력 행 사이, 메인 화면 줄 사이.
 
 ## ApcTheme
 

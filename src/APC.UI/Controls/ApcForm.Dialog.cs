@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -74,6 +74,7 @@ namespace APC.UI.Controls
         protected void AddContent(Control c)
         {
             RequireSetup();
+            c.Dock = DockStyle.None;   // ApcHeaderBar처럼 기본 Dock이 있는 컨트롤도 헬퍼가 둔 자리에
             Controls.Add(c);
             _blocks.Add(new Block { Kind = c is Label && _sectionTitles.Contains(c) ? BlockKind.Title : BlockKind.Content, Content = c });
         }
@@ -84,6 +85,7 @@ namespace APC.UI.Controls
             RequireSetup();
             if (_dialogHeight <= 0) throw new InvalidOperationException("AddContentFill은 SetupDialog에 높이를 줘야 합니다.");
             if (_blocks.Any(b => b.Kind == BlockKind.Fill)) throw new InvalidOperationException("AddContentFill은 한 번만 쓸 수 있습니다.");
+            c.Dock = DockStyle.None;
             Controls.Add(c);
             _blocks.Add(new Block { Kind = BlockKind.Fill, Content = c });
         }

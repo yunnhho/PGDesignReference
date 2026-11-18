@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -15,7 +15,7 @@ namespace APC.UI.Demo.Templates
     internal sealed class LotInputDialog : ApcForm
     {
         private const int ColLot = 2, ColBarrel = 3, ColTime = 4;
-        private readonly ApcGrid _grid = new ApcGrid { Dock = DockStyle.Fill, ClearInitialSelection = false, EditMode = DataGridViewEditMode.EditOnEnter,
+        private readonly ApcGrid _grid = new ApcGrid { ClearInitialSelection = false, EditMode = DataGridViewEditMode.EditOnEnter,
             SelectionMode = DataGridViewSelectionMode.CellSelect, MultiSelect = false, ScrollBars = ScrollBars.None };   // 입력 표: 행이 아니라 입력할 칸만 강조, 칸 수만큼 높이를 잡으므로 스크롤 없음
         private readonly string[] _slots;
 
@@ -24,21 +24,11 @@ namespace APC.UI.Demo.Templates
         public LotInputDialog(string equipment, string[] slots, string[] specs)
         {
             _slots = slots;
-            TitleText = "LOT 입력";
-            Resizable = false;
-            MinimizeBox = false;
-            ShowInTaskbar = false;
-            StartPosition = FormStartPosition.CenterParent;
+            SetupDialog("LOT 입력", 1000);
 
-            int rowH = ApcTheme.Px(52), headH = ApcTheme.Px(40), infoH = ApcTheme.Px(44), pad = ApcTheme.Px(16), btnH = ApcTheme.Px(44);
-            ClientSize = new Size(ApcTheme.Px(1000), ContentBounds.Top + pad + infoH + pad + headH + rowH * slots.Length + 2 + pad + btnH + pad + ApcTheme.Px(8));
-
-            // 설비 줄: 이름표 칸(회색) + 값 칸
-            var info = new TableLayoutPanel { Dock = DockStyle.Top, Height = infoH, ColumnCount = 2, CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]) };
-            info.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, ApcTheme.Px(70)));
-            info.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-            info.Controls.Add(Cell("설비", false), 0, 0);
-            info.Controls.Add(Cell(equipment, true), 1, 0);
+            int rowH = ApcTheme.Px(52), headH = ApcTheme.Px(40);
+            AddFieldRow("설비", new Label { Text = equipment, AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Transparent,
+                Font = ApcTheme.GetFont(), ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text) });
 
             _grid.RowTemplate.Height = rowH;
             _grid.ColumnHeadersHeight = headH;
@@ -62,23 +52,12 @@ namespace APC.UI.Demo.Templates
                     _grid.Rows[e.RowIndex].Cells[ColTime].Value = DateTime.Now.ToString("HH:mm:ss");
             };
 
-            var ok = new ApcButton { Text = "확인", Variant = ApcButtonVariant.Primary, Width = ApcTheme.Px(140), Dock = DockStyle.Right };
-            var cancel = new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel, Width = ApcTheme.Px(130), Dock = DockStyle.Right };
-            var gap = new Panel { Width = ApcTheme.Px(12), Dock = DockStyle.Right, BackColor = Color.Transparent };
-            var buttons = new Panel { Dock = DockStyle.Bottom, Height = btnH + pad, Padding = new Padding(0, pad, 0, 0), BackColor = Color.Transparent };
-            buttons.Controls.Add(cancel);
-            buttons.Controls.Add(gap);
-            buttons.Controls.Add(ok);   // Dock=Right는 나중 Add가 바깥(오른쪽) → [취소][확인]
-            ok.Click += (s, e) => Confirm();
+            _grid.Height = headH + rowH * slots.Length + 2;   // 칸 수만큼(빈 줄·스크롤 없이)
+            AddContent(_grid);
 
-            var spacer = new Panel { Dock = DockStyle.Top, Height = pad, BackColor = Color.Transparent };
-            var content = new Panel { Bounds = ContentBounds, Padding = new Padding(pad), BackColor = Color.Transparent };
-            content.Controls.Add(_grid);
-            content.Controls.Add(spacer);
-            content.Controls.Add(info);
-            content.Controls.Add(buttons);
-            Controls.Add(content);
-            CancelButton = cancel;   // Enter는 스캔이 쓴다 → AcceptButton 없음
+            var ok = new ApcButton { Text = "확인", Variant = ApcButtonVariant.Primary };
+            ok.Click += (s, e) => Confirm();
+            SetFooter(new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel }, ok);   // Enter는 스캔이 쓴다 → AcceptButton 없음
             Shown += (s, e) => { _grid.CurrentCell = _grid.Rows[0].Cells[ColLot]; _grid.Focus(); };
         }
 
@@ -113,16 +92,6 @@ namespace APC.UI.Demo.Templates
             c.Width = ApcTheme.Px(width);
             c.ReadOnly = readOnly;
             return c;
-        }
-
-        private static Label Cell(string text, bool strong)
-        {
-            return new Label
-            {
-                Text = text, Dock = DockStyle.Fill, Margin = Padding.Empty, TextAlign = ContentAlignment.MiddleCenter, BackColor = Color.Transparent,
-                Font = strong ? new Font(ApcTheme.Current.FontFamily, ApcTheme.Current.FontSize * 1.3f, FontStyle.Bold) : ApcTheme.GetFont(),
-                ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text),
-            };
         }
     }
 }

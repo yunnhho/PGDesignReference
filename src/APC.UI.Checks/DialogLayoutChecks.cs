@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -47,6 +47,7 @@ namespace APC.UI.Checks
             using (var d = new FillDialog(400, false))
             {
                 ShowOffscreen(d);
+                Check(d.Head.Dock == DockStyle.None && d.Head.Left == d.ContentBounds.Left + ApcTheme.Px(ApcLayout.Pad), "dialog: docked content is placed by helper");
                 Check(d.Chart.Bottom + ApcTheme.Px(ApcLayout.GroupGap) == d.CloseButton.Top && d.Chart.Height > 0 && d.CancelButton == d.CloseButton,
                       "dialog: fill content");
             }
@@ -93,11 +94,13 @@ namespace APC.UI.Checks
         private sealed class FillDialog : ApcForm
         {
             public readonly ApcTrendChart Chart = new ApcTrendChart();
+            public readonly ApcHeaderBar Head = new ApcHeaderBar { Title = "h" };
             public readonly ApcButton CloseButton = new ApcButton { Text = "닫기" };
 
             public FillDialog(int height, bool twoFills)
             {
                 SetupDialog("t", 600, height);
+                AddContent(Head);
                 AddContent(new ApcGrid { Height = ApcTheme.Px(100) });
                 AddContentFill(Chart);
                 if (twoFills) AddContentFill(new ApcTrendChart());
