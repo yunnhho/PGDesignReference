@@ -27,7 +27,8 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("item", "품목");
             _grid.Columns.Add("qty", "지시수량");
             _grid.Columns.Add("line", "설비");
-            _grid.Columns["item"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 짧은 값 열뿐이면 남는 폭을 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다).
+            foreach (DataGridViewColumn c in _grid.Columns) if (!(c is ApcLampColumn)) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             foreach (var o in Orders) _grid.Rows.Add(o);
             // 샘플은 표 높이만큼 채운다(대기 지시). 실제로는 데이터 인터페이스가 준다.
             string[] items = { "하우징 A-120", "커버 B-045", "브래킷 C-310" };

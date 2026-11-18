@@ -8,7 +8,7 @@ namespace APC.UI.Tools
 {
     /// <summary>
     /// 배치가 끝난(화면에 띄운) 컨트롤 트리를 검사해 사람이 render PNG에서 지적하던 문제를 글로 돌려준다:
-    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바, [취소][확인] 순서.
+    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [취소][확인] 순서, 전체 선택된 글자.
     /// APC.UI 내부(입력칸 속 TextBox, 표 스크롤바 등)는 들어가지 않는다. APC.UI 사본이 둘일 수 있어 형식은 이름으로 비교한다.
     /// </summary>
     public static class LayoutLint
@@ -62,7 +62,9 @@ namespace APC.UI.Tools
                 issues.Add(path + ": Control을 직접 상속해 그림 — Apc 표시 컨트롤로 바꾼다");
 
             if (c is DataGridView grid) CheckGrid(grid, path, issues);
-            if (c is TextBoxBase tb && tb.SelectionLength > 0 && tb.SelectionLength == tb.TextLength && (tb.Focused || !tb.HideSelection))
+            // 숫자칸·날짜칸은 안쪽 입력칸까지 본다(Walk는 Apc 컨트롤 안으로 들어가지 않는다).
+            var boxes = c is TextBoxBase ? new[] { (TextBoxBase)c } : IsApc(c) ? c.Controls.OfType<TextBoxBase>().ToArray() : new TextBoxBase[0];
+            if (boxes.Any(tb => tb.SelectionLength > 0 && tb.SelectionLength == tb.TextLength && (tb.Focused || !tb.HideSelection)))
                 issues.Add(path + ": 글자 전체가 선택된 채 표시(파란 칠) — 첫 포커스 칸은 SelectionStart = Text.Length로");
             int need = TextWidth(c);
             if (need > 0 && need > c.ClientSize.Width)
@@ -92,9 +94,15 @@ namespace APC.UI.Tools
         {
             // 실제 스크롤바 컨트롤을 본다(숨긴 행·이미 스크롤된 표도 맞게).
             if (grid.Controls.OfType<VScrollBar>().Any(v => v.Visible))
-                issues.Add(path + ": 표 세로 스크롤바(행 " + grid.RowCount + " 중 " + grid.DisplayedRowCount(false) + "행 보임) — 샘플 행을 줄이거나 표를 키운다");
+                issues.Add(path + ": 표 세로 스크롤바(행 " + grid.RowCount + " 중 " + grid.DisplayedRowCount(false) + "행 보임) — 샘플 행을 " + grid.DisplayedRowCount(false) + "개로 줄이거나 표를 키운다");
             if (grid.Controls.OfType<HScrollBar>().Any(h => h.Visible))
                 issues.Add(path + ": 표 가로 스크롤바 — 열 폭을 줄이거나 Fill로");
+
+            // 가운데 정렬 열(짧은 값: ID·숫자·판정)이 표 폭 절반을 넘으면 옆 열이 끝으로 밀린다. 긴 글 열(MiddleLeft)만 넓게.
+            var cols = grid.Columns.Cast<DataGridViewColumn>().Where(x => x.Visible).ToList();
+            foreach (var col in cols)
+                if (cols.Count >= 3 && col.Width * 2 > grid.ClientSize.Width && col.InheritedStyle.Alignment != DataGridViewContentAlignment.MiddleLeft)
+                    issues.Add(path + ": 열 '" + col.HeaderText + "'가 표 폭 절반 넘게 차지(" + col.Width + "/" + grid.ClientSize.Width + "px) — 짧은 값 열뿐이면 램프 열 빼고 모두 Fill로 고르게, 긴 글 열이면 MiddleLeft로");
 
             // 읽기 전용 표(이력·목록)는 샘플로 높이를 채운다. 입력 표(ReadOnly=false)는 칸 수가 정해져 있어 제외.
             if (!grid.ReadOnly || grid.RowTemplate.Height <= 0) return;

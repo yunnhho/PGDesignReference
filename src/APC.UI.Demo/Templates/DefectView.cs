@@ -30,7 +30,8 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("type", "불량 유형");
             _grid.Columns.Add("qty", "수량");
             _grid.Columns.Add("lot", "LOT");
-            _grid.Columns["lot"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 짧은 값 열뿐이면 남는 폭을 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다).
+            foreach (DataGridViewColumn c in _grid.Columns) if (!(c is ApcLampColumn)) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             // 샘플: 오늘 등록된 불량을 표 높이만큼. 실제로는 데이터 인터페이스가 준다.
             var at = new DateTime(2026, 11, 18, 11, 40, 0);
             for (int i = 0; i < SampleRows; i++, at = at.AddMinutes(-9))

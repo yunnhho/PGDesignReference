@@ -29,7 +29,8 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("item", "품목");
             _grid.Columns.Add("qty", "수량");
             _grid.Columns.Add("time", "스캔 시각");
-            _grid.Columns["item"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 짧은 값 열뿐이면 남는 폭을 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다).
+            foreach (DataGridViewColumn c in _grid.Columns) if (!(c is ApcLampColumn)) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             // 샘플: 미저장(Warn) 몇 건 + 저장된(Run) 실적을 표 높이만큼. 실제로는 데이터 인터페이스가 준다.
             var at = new DateTime(2026, 11, 18, 11, 40, 0);
             for (int i = 0; i < SampleRows; i++, at = at.AddMinutes(-4))
