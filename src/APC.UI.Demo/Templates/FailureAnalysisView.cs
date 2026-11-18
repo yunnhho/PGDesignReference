@@ -84,7 +84,6 @@ namespace APC.UI.Demo.Templates
             _grid.Columns["name"].Frozen = true;
             foreach (DataGridViewColumn c in _grid.Columns) c.SortMode = DataGridViewColumnSortMode.NotSortable;
             _grid.Columns["no"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            _grid.Columns["rpm"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             _grid.ColumnGroups.Add(new ColumnGroup("B1", 2, 4));
             _grid.ColumnGroups.Add(new ColumnGroup("B2", 5, 7));

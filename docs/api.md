@@ -1,4 +1,4 @@
-# APC.UI API (v1.3.1.0)
+# APC.UI API (v1.6.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -23,6 +23,13 @@
 - `ApcButton()`
 - `ApcButtonVariant Variant { get; set; }`
 
+## ApcButtonField
+
+`APC.UI.Controls` · class : UserControl
+
+입력칸 + 칸 안 오른쪽 버튼 영역(콤보 화살표와 같은 모양). 테두리·포커스 테두리는 이 컨트롤이 그리고, 안쪽 입력칸은 테두리 없이 들어간다. 버튼 영역은 위아래로 나눌 수 있다(숫자칸 ▲▼). ApcNumericBox·ApcDateBox의 바탕.
+- `ApcTextBox TextBox { get; }` — 안쪽 입력칸(포커스 지정·스캔 복원 대상).
+
 ## ApcButtonVariant
 
 `APC.UI.Controls` · enum
@@ -38,11 +45,10 @@
 
 ## ApcDateBox
 
-`APC.UI.Controls` · class : UserControl
+`APC.UI.Controls` · class : ApcButtonField
 
-날짜 입력: 입력칸(yyyy-MM-dd) + 달력 버튼. 버튼을 누르면 달력이 펼쳐지고, 날짜를 누르면 닫힌다. 직접 입력은 yyyy-MM-dd / yyyyMMdd를 받아 Enter 또는 칸을 떠날 때 확정, 틀리면 이전 값. ↑↓ 키는 하루씩.
+날짜 입력: 입력칸(yyyy-MM-dd) + 칸 안 오른쪽 ▼ 버튼 영역(콤보와 같은 모양). 누르면 달력이 펼쳐지고, 날짜를 누르면 닫힌다. 직접 입력은 yyyy-MM-dd / yyyyMMdd를 받아 Enter 또는 칸을 떠날 때 확정, 틀리면 이전 값. ↑↓ 키는 하루씩.
 - `ApcDateBox()`
-- `ApcTextBox TextBox { get; }`
 - `DateTime Value { get; set; }`
 - `const string Format`
 - `event EventHandler ValueChanged`
@@ -79,6 +85,15 @@
 
 테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택. 사용자가 표를 누르거나 키로 움직이기 전에는 첫 행이 저절로 선택되지 않는다(CurrentRow = null) — "선택한 행에 대해" 동작하는 버튼은 CurrentRow가 null이면 아무것도 하지 않게 둔다.
 - `ApcGrid()`
+- `bool ClearInitialSelection { get; set; }` — true(기본)면 사용자가 누르기 전엔 선택 행이 없다. 입력 표(스캔으로 칸을 채우는 dialog 등)처럼 앱이 CurrentCell을 정해 두고 바로 입력받아야 하면 false.
+
+## ApcGroup
+
+`APC.UI.Controls` · class : Panel
+
+제목 띠가 있는 묶음 상자(설정 dialog의 블록 등, 표준 GroupBox 대신). 제목 띠는 값 카드와 같은 그리드 헤더 그라데이션. 안에 넣는 컨트롤은 Padding(제목 띠 아래 + 여백) 안쪽에 배치된다 — Dock이나 FlowLayoutPanel(Dock=Fill)을 쓰면 된다.
+- `ApcGroup()`
+- `string Text { get; set; }` — 제목 띠 글자.
 
 ## ApcHeaderBar
 
@@ -126,11 +141,10 @@
 
 ## ApcNumericBox
 
-`APC.UI.Controls` · class : UserControl
+`APC.UI.Controls` · class : ApcButtonField
 
-숫자 입력: [−] 입력칸 [+]. 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정. 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
+숫자 입력: 칸 안 오른쪽에 ▲(위)/▼(아래) 버튼 영역(콤보 화살표와 같은 모양). 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정. 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
 - `ApcNumericBox()`
-- `ApcTextBox TextBox { get; }` — 안쪽 입력칸(포커스 지정·스캔 복원 대상).
 - `decimal Increment { get; set; }`
 - `decimal Maximum { get; set; }`
 - `decimal Minimum { get; set; }`
@@ -173,6 +187,7 @@
 - `protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)`
 - `protected static FlowLayoutPanel Row(params Control[] controls)` — 왼쪽→오른쪽으로 쌓는 한 줄(필터·버튼 줄).
 - `protected static Label Caption(string text)`
+- `protected static TableLayoutPanel Columns(int height, Control[] cells, float[] percents = null)` — 카드·타일·판정판을 한 줄에 나란히(Dock=Top). percents가 없으면 같은 폭. 칸 간격 12px(마지막 칸 0), 줄 아래 간격 12px. height는 칸 높이(배율 적용한 값, 예: S(150)).
 - `protected static int S(int px)` — 배율 적용 px. ApcForm dialog 등 이 클래스 밖에서는 ApcTheme.Px.
 
 ## ApcTextBox
@@ -200,7 +215,7 @@
 
 `APC.UI.Controls` · class : Control
 
-현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 "--".
+현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸.
 - `ApcValueCard()`
 - `HorizontalAlignment ValueAlign { get; set; }`
 - `StatusKind Status { get; set; }`

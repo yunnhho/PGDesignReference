@@ -43,9 +43,12 @@ namespace APC.UI.Controls
             Height = (int)Math.Round(BaseHeight * ApcTheme.Scale);
         }
 
+        /// <summary>테두리 없이 바탕만(숫자칸·날짜칸처럼 바깥 컨트롤이 테두리를 그릴 때).</summary>
+        internal bool Borderless { get; set; }
+
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
         {
-            base.SetBoundsCore(x, y, width, Multiline ? height : Math.Max(height, ApcTheme.MinHeight), specified);
+            base.SetBoundsCore(x, y, width, Multiline || Borderless ? height : Math.Max(height, ApcTheme.MinHeight), specified);
         }
 
         /// <summary>창 크기 h일 때 테두리+여백 두께. 한 줄이면 글자 줄이 세로 가운데에 오도록 위아래를 나눈다.</summary>
@@ -108,7 +111,7 @@ namespace APC.UI.Controls
                 region.Exclude(client);
                 g.FillRegion(brush, region);
             }
-            FieldFrame.DrawBorder(g, win, Focused && !ReadOnly);
+            if (!Borderless) FieldFrame.DrawBorder(g, win, Focused && !ReadOnly);
         }
 
         private void RedrawFrame()

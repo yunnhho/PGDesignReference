@@ -8,7 +8,7 @@ WinForms(.NET Framework 4.0~4.8) 현장 프로그램용 컨트롤·테마·이�
 
 도구(`src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe`):
 - `api <dll> <out.md>` — public API 요약. `build.sh`가 `docs/api.md`를 매번 다시 만든다.
-- `render <exe|dll> <형식명> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]` — 화면을 PNG로, 원본 캡처와 나란히 비교본도.
+- `render <exe|dll> <형식명> <themeDir> <out.png> [--size WxH] [--compare <원본.png>]` — 화면을 PNG로(크기 생략 시 크기 고정 dialog는 자기 크기, 그 밖은 1920×1080), 원본 캡처와 나란히 비교본도. 배치 점검(글자 잘림·넘침·겹침·줄 어긋남·표준 컨트롤·표 스크롤바·버튼 순서)을 `점검 N건`으로 출력.
 - `attach <csproj> [--check]` — 기존 csproj에 APC.UI 참조와 테마 출력 복사 추가(원래 서식·인코딩 유지). `--check`는 연결 가능 여부만 검사.
 
 Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/install-skill.sh`로 `~/.claude/skills/`에 설치하면(저장소 경로 자동 반영) 다른 폴더에서 "현장 PC 화면 만들어줘"류 요청에 이 저장소 도구를 쓴다. 스킬을 고치면 다시 설치한다.
@@ -20,7 +20,7 @@ Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/
 3. `Main`에서 폼을 띄우기 전에 `ApcTheme.Load(@"...\themes\<고객사>")`를 호출한다. `ThemeException`이 나면 메시지에 파일과 항목이 적혀 있다.
 4. 폼은 `ApcForm`을 상속하고 표준 입력·표시 컨트롤 대신 Apc 컨트롤을 쓴다. 삭제 같은 되돌릴 수 없는 동작 앞에는 `ApcDialog.Confirm(this, "...")`, 저장 확인은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`, 입력 오류 안내는 `ApcDialog.Alert(this, "...")`.
    - 입력: `ApcButton` / `ApcTextBox` / `ApcScanBox`(바코드) / `ApcComboBox` / `ApcNumericBox` / `ApcDateBox`
-   - 표시: `ApcGrid` + `ApcLampColumn` / `ApcLamp` / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
+   - 표시: `ApcGrid` + `ApcLampColumn` / `ApcLamp` / `ApcGroup`(설정 묶음) / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
    - `Label`과 배치용 패널(`Panel`, `FlowLayoutPanel`, `TableLayoutPanel`)은 표준 그대로 쓴다.
 5. 앱 매니페스트에 `<dpiAware>true</dpiAware>`를 넣는다(`src/APC.UI.Demo/app.manifest` 참고).
 
@@ -46,7 +46,7 @@ src/APC.UI.Demo/bin/Debug/APC.UI.Demo.exe [--theme sample]   # 갤러리
 
 ```
 assets-src/   SVG 원본(수정은 여기서)      themes/       테마별 theme.json + assets/*.png
-src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 2종 + 기능 템플릿 6종)
+src/APC.UI/   컨트롤 라이브러리            src/APC.UI.Demo/    갤러리(카탈로그 3종 + 기능 템플릿 6종 + dialog 템플릿 5종)
 src/APC.UI.Checks/  자가점검 콘솔           tools/        SVG → PNG 렌더러, new-project.sh, smoke.sh, project-template/
 src/APC.UI.Tools/   api·render·attach 도구     skills/       Claude Code 스킬 원본(apc-field-ui)
 Resources/    예전 납품 이미지(참고용, 수정하지 않음)

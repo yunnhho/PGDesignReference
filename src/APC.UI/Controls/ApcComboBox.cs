@@ -25,7 +25,7 @@ namespace APC.UI.Controls
             ApplyTheme();
         }
 
-        private int ArrowWidth { get { return Math.Max(Height - 2, (int)Math.Round(24 * ApcTheme.Scale)); } }
+        private int ArrowWidth { get { return FieldFrame.ButtonWidth(Height); } }
 
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -34,13 +34,8 @@ namespace APC.UI.Controls
             using (var b = new SolidBrush(FieldFrame.Fill(Enabled, false))) g.FillRectangle(b, rect);
 
             var arrow = new Rectangle(rect.Right - ArrowWidth, rect.Top, ArrowWidth, rect.Height);
-            if (ApcTheme.Current != null)
-            {
-                var c = ApcTheme.Current.Colors;
-                Gradients.Fill(g, arrow, c.GridHeader);
-                using (var pen = new Pen(ApcTheme.C(c.Border))) g.DrawLine(pen, arrow.Left, arrow.Top, arrow.Left, arrow.Bottom);
-            }
-            DrawArrow(g, arrow, FieldFrame.TextColor(Enabled));
+            FieldFrame.DrawButtonArea(g, arrow, false);
+            FieldFrame.DrawTriangle(g, arrow, FieldFrame.TextColor(Enabled), false);
 
             int pad = (int)Math.Round(6 * ApcTheme.Scale) + 1;
             var textRect = Rectangle.FromLTRB(rect.Left + pad, rect.Top, arrow.Left - pad, rect.Bottom);
@@ -48,14 +43,6 @@ namespace APC.UI.Controls
                 TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
 
             FieldFrame.DrawBorder(g, rect, Focused || DroppedDown);
-        }
-
-        private static void DrawArrow(Graphics g, Rectangle r, Color color)
-        {
-            int w = Math.Max(6, r.Width / 3), h = Math.Max(3, w / 2);
-            int x = r.Left + (r.Width - w) / 2, y = r.Top + (r.Height - h) / 2;
-            using (var b = new SolidBrush(color))
-                g.FillPolygon(b, new[] { new Point(x, y), new Point(x + w, y), new Point(x + w / 2, y + h) });
         }
 
         protected override void OnDrawItem(DrawItemEventArgs e)

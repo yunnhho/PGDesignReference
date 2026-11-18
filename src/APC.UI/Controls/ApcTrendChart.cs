@@ -125,9 +125,9 @@ namespace APC.UI.Controls
             }
 
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            DrawLevel(g, plot, y, _reference, ApcTheme.C(c.TextMuted));
-            DrawLevel(g, plot, y, _upper, ApcTheme.Status(StatusKind.Alarm));
-            DrawLevel(g, plot, y, _lower, ApcTheme.Status(StatusKind.Alarm));
+            DrawLevel(g, plot, y, _reference, ApcTheme.C(c.TextMuted), 1);
+            DrawLevel(g, plot, y, _upper, ApcTheme.Status(StatusKind.Alarm), 2);   // 1px 빨간 점선은 회색처럼 보인다
+            DrawLevel(g, plot, y, _lower, ApcTheme.Status(StatusKind.Alarm), 2);
 
             if (_values.Length == 0) return;
             var pts = new PointF[_values.Length];
@@ -144,10 +144,10 @@ namespace APC.UI.Controls
             using (var b = new SolidBrush(lineColor)) g.FillEllipse(b, last.X - r, last.Y - r, 2 * r, 2 * r);   // 현재값 강조
         }
 
-        private static void DrawLevel(Graphics g, Rectangle plot, Func<double, float> y, double? level, Color color)
+        private static void DrawLevel(Graphics g, Rectangle plot, Func<double, float> y, double? level, Color color, int width)
         {
             if (!level.HasValue) return;
-            using (var pen = new Pen(color, Math.Max(1f, ApcTheme.Scale)) { DashStyle = DashStyle.Dash })
+            using (var pen = new Pen(color, Math.Max(width, width * ApcTheme.Scale)) { DashStyle = DashStyle.Dash })
                 g.DrawLine(pen, plot.Left, y(level.Value), plot.Right, y(level.Value));
         }
 

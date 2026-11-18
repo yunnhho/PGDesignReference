@@ -24,6 +24,9 @@ namespace APC.UI.Controls
             BorderStyle = BorderStyle.FixedSingle;
             CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            // 현장 표 기준: 전부 가운데. 긴 글(알람 문구·비고) 열만 그 열에서 MiddleLeft로.
+            DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             ApcTheme.Changed += OnThemeChanged;
             ApplyTheme();
         }
@@ -78,7 +81,7 @@ namespace APC.UI.Controls
 
         private void ClearAutoSelection()
         {
-            if (_userSelected || !IsHandleCreated) return;
+            if (_userSelected || !ClearInitialSelection || !IsHandleCreated) return;
             ClearSelection();
             if (CurrentCell != null && !IsCurrentCellInEditMode) CurrentCell = null;
         }
@@ -95,6 +98,21 @@ namespace APC.UI.Controls
         }
         protected override void OnMouseDown(MouseEventArgs e) { _userSelected = true; base.OnMouseDown(e); }
         protected override void OnKeyDown(KeyEventArgs e) { _userSelected = true; base.OnKeyDown(e); }
+
+        /// <summary>
+        /// true(기본)면 사용자가 누르기 전엔 선택 행이 없다. 입력 표(스캔으로 칸을 채우는 dialog 등)처럼
+        /// 앱이 CurrentCell을 정해 두고 바로 입력받아야 하면 false.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(true)]
+        public bool ClearInitialSelection { get; set; } = true;
+
+        /// <summary>편집 가능한 표에서 읽기 전용 열은 회색 바탕 — 어느 칸에 입력하는지 한눈에 보이게.</summary>
+        protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
+        {
+            base.OnCellFormatting(e);
+            if (ReadOnly || ApcTheme.Current == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (Columns[e.ColumnIndex].ReadOnly) e.CellStyle.BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);
+        }
 
         private void OnThemeChanged(object sender, EventArgs e) { ApplyTheme(); Invalidate(); }
 

@@ -33,6 +33,34 @@ namespace APC.UI.Checks
                 form.Hide();
             }
 
+            // 입력 표: ClearInitialSelection=false면 앱이 정한 현재 셀이 남고, 읽기 전용 열은 회색 바탕
+            using (var form = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
+            {
+                var g = new ApcGrid { Dock = DockStyle.Fill, ClearInitialSelection = false };
+                g.Columns.Add("slot", "칸");
+                g.Columns.Add("lot", "LOT");
+                g.Columns[0].ReadOnly = true;
+                g.Rows.Add("B1", ""); g.Rows.Add("B2", "");
+                form.Controls.Add(g);
+                form.Show();
+                g.CurrentCell = g.Rows[0].Cells[1];
+                g.Focus();
+                Application.DoEvents();
+                Check(g.CurrentCell != null && g.CurrentCell.ColumnIndex == 1, "grid: ClearInitialSelection=false keeps app's current cell");
+                using (var bmp = new Bitmap(g.Width, g.Height))
+                {
+                    g.DrawToBitmap(bmp, new Rectangle(Point.Empty, g.Size));
+                    int y = g.ColumnHeadersHeight + g.Rows[0].Height + g.Rows[1].Height / 2;   // 선택되지 않은 둘째 행
+                    int gray = ApcTheme.C(ApcTheme.Current.Colors.Background[0]).ToArgb();
+                    Check(bmp.GetPixel(g.Columns[0].Width - 5, y).ToArgb() == gray && bmp.GetPixel(g.Columns[0].Width + g.Columns[1].Width - 5, y).ToArgb() != gray,
+                        "grid: read-only column shaded in editable grid");
+                }
+                form.Hide();
+            }
+
+            using (var grp = new ApcGroup { Text = "BLOCK#1" })
+                Check(grp.Padding.Top > grp.TitleHeight && grp.Padding.Left > 0, "group: content starts below title band");
+
             using (var grid = new ApcGrid())
             {
                 Check(grid.RowTemplate.Height >= ApcTheme.MinHeight, "grid row height >= min");

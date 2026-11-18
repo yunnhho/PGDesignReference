@@ -219,6 +219,14 @@ namespace APC.UI.Controls
             return HTCLIENT;
         }
 
+        /// <summary>폼이 뜰 때 첫 입력칸이 포커스를 받으며 글자 전체가 파랗게 선택되는 것을 막는다(커서는 끝으로).</summary>
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            var box = ActiveControl as TextBoxBase;
+            if (box != null && box.SelectionLength == box.TextLength) box.Select(box.TextLength, 0);
+        }
+
         protected override void OnLocationChanged(EventArgs e)
         {
             UpdateMaximizedBounds();

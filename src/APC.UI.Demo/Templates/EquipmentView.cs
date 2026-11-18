@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 using APC.UI.Controls;
 using APC.UI.Theming;
@@ -10,6 +11,8 @@ namespace APC.UI.Demo.Templates
     /// </summary>
     internal sealed class EquipmentView : ApcTemplateView
     {
+        private const int SampleHistoryRows = 19;
+
         // 설비명, 상태, 상태 문구
         private static readonly object[][] Machines =
         {
@@ -25,7 +28,7 @@ namespace APC.UI.Demo.Templates
         private static readonly object[][] Values =
         {
             new object[] { "하도 부스 온도", "24.5", "℃", StatusKind.Run, "설정 25.0" },
-            new object[] { "상도 부스 습도", "68", "%RH", StatusKind.Warn, "설정 60 · 상한 70" },
+            new object[] { "상도 부스 습도", "68.0", "%RH", StatusKind.Warn, "설정 60.0 · 상한 70.0" },
             new object[] { "건조로1 온도", "142.0", "℃", StatusKind.Run, "설정 140.0" },
             new object[] { "건조로2 온도", "168.0", "℃", StatusKind.Alarm, "설정 160.0 · 상한 165.0" },
             new object[] { "컨베이어 속도", "1.8", "m/min", StatusKind.Run, "설정 1.8" },
@@ -59,10 +62,26 @@ namespace APC.UI.Demo.Templates
             grid.Columns.Add("unit", "설비");
             grid.Columns.Add("text", "내용");
             grid.Columns["text"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            grid.Columns["text"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;   // 긴 글만 왼쪽
             grid.Rows.Add(StatusKind.Alarm, "14:52:10", "건조로2", "온도 상한 초과 168.0 > 165.0 ℃");
-            grid.Rows.Add(StatusKind.Warn, "14:41:37", "상도 부스", "습도 상한 근접 68 %RH (상한 70)");
+            grid.Rows.Add(StatusKind.Warn, "14:41:37", "상도 부스", "습도 상한 근접 68.0 %RH (상한 70.0)");
             grid.Rows.Add(StatusKind.Stop, "13:58:12", "냉각 존", "계획 정지");
             grid.Rows.Add(StatusKind.Warn, "13:20:05", "전처리", "세정액 pH 편차 (6.5 / 설정 7.0)");
+            // 샘플은 표 높이만큼 채운다(스크롤바 없이). 실제로는 데이터 인터페이스가 최근 이력을 준다.
+            var older = new[]
+            {
+                new object[] { StatusKind.Run, "건조로1", "온도 정상 복귀 140.2 ℃" },
+                new object[] { StatusKind.Warn, "하도 부스", "온도 하한 근접 22.1 ℃ (하한 22.0)" },
+                new object[] { StatusKind.Info, "컨베이어", "속도 설정 변경 1.6 → 1.8 m/min" },
+                new object[] { StatusKind.Alarm, "건조로2", "버너 착화 실패 (재시도 1회)" },
+                new object[] { StatusKind.Run, "건조로2", "버너 재착화 성공" },
+            };
+            var at = new DateTime(2026, 11, 18, 13, 5, 0);
+            for (int i = 0; i < SampleHistoryRows; i++, at = at.AddMinutes(-11))
+            {
+                var o = older[i % older.Length];
+                grid.Rows.Add(o[0], at.ToString("HH:mm:ss"), o[1], o[2]);
+            }
 
             // Top 도킹은 나중에 Add한 것이 위 → 이력(Fill) 먼저, 그다음 아래 줄부터
             Body.Controls.Add(grid);
@@ -75,20 +94,6 @@ namespace APC.UI.Demo.Templates
         {
             // 실제로는 데이터 인터페이스에서 그 설비의 센서·추이를 받아 넘긴다. 여기서는 샘플 dialog.
             using (var dlg = new EquipmentDetailDialog()) dlg.ShowDialog(FindForm());
-        }
-
-        /// <summary>한 줄에 같은 폭으로 나란히. 칸 사이 간격 = 오른쪽 Margin, 줄 아래 간격 = Padding.Bottom.</summary>
-        private static TableLayoutPanel Columns(int height, Control[] cells)
-        {
-            var t = new TableLayoutPanel { Dock = DockStyle.Top, Height = height + S(12), ColumnCount = cells.Length, RowCount = 1, Padding = new Padding(0, 0, 0, S(12)) };
-            for (int i = 0; i < cells.Length; i++)
-            {
-                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / cells.Length));
-                cells[i].Margin = new Padding(0, 0, i == cells.Length - 1 ? 0 : S(12), 0);
-                t.Controls.Add(cells[i], i, 0);
-            }
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            return t;
         }
     }
 }

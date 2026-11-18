@@ -2,15 +2,13 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
-using APC.UI.Drawing;
 using APC.UI.Theming;
 
 namespace APC.UI.Demo.Templates
 {
     /// <summary>
     /// references/TempHumi.png 재구성: 상단 연결 정보 + 페이지 이동, 센서 카드 격자.
-    /// 원본의 빨강(온도)/파랑(습도) 값 색은 상태색과 겹쳐서 쓰지 않는다 — 값은 기본 글자색,
-    /// 범위를 벗어날 때만 경고/알람 색을 입힌다. 연결 상태는 빨간 사각형 대신 ApcLamp.
+    /// 원본의 빨강(온도)/파랑(습도) 값 색은 상태색과 겹쳐서 쓰지 않는다 — 상태는 카드 램프·테두리(ApcValueCard.Status).
     /// </summary>
     internal sealed class TempHumiView : ApcTemplateView
     {
@@ -48,7 +46,7 @@ namespace APC.UI.Demo.Templates
 
             var cards = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Color.Transparent };
             foreach (var s in Sensors)
-                cards.Controls.Add(new SensorCard((string)s[0], s[1] as double?, s[2] as double?, (StatusKind)s[3], (string)s[4]));
+                cards.Controls.Add(SensorCard((string)s[0], s[1] as double?, s[2] as double?, (StatusKind)s[3], (string)s[4]));
 
             Body.Controls.Add(cards);
             Body.Controls.Add(infoBar);
@@ -71,79 +69,20 @@ namespace APC.UI.Demo.Templates
             return l;
         }
 
-        /// <summary>센서 카드. 제목 띠(그리드 헤더 그라데이션) + 상태 램프, 큰 값 2개, 하단 상태 문구.</summary>
-        private sealed class SensorCard : Control
+        /// <summary>센서 하나 = 값 카드(온도 크게, 습도·수신 시각은 아래 줄). 값이 없으면 빈칸.</summary>
+        private static ApcValueCard SensorCard(string title, double? temp, double? humi, StatusKind status, string footer)
         {
-            private const double TempWarn = 29.0, TempAlarm = 30.0;
-
-            private readonly string _title;
-            private readonly double? _temp;
-            private readonly double? _humi;
-            private readonly StatusKind _status;
-            private readonly string _footer;
-
-            public SensorCard(string title, double? temp, double? humi, StatusKind status, string footer)
+            return new ApcValueCard
             {
-                SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-                _title = title; _temp = temp; _humi = humi; _status = status; _footer = footer;
-                Size = new Size(S(340), S(210));
-                Margin = new Padding(0, 0, S(16), S(16));
-            }
-
-            protected override void OnPaint(PaintEventArgs e)
-            {
-                var g = e.Graphics;
-                var c = ApcTheme.Current.Colors;
-                var rect = new Rectangle(0, 0, Width - 1, Height - 1);
-                int pad = S(14), titleH = S(40);
-
-                g.Clear(Color.White);
-                Gradients.Fill(g, new Rectangle(1, 1, Width - 2, titleH), c.GridHeader);
-                using (var pen = new Pen(ApcTheme.C(c.Border)))
-                {
-                    g.DrawRectangle(pen, rect);
-                    g.DrawLine(pen, 0, titleH, Width, titleH);
-                }
-                // 알람 카드는 테두리를 굵은 알람색으로 — 멀리서도 어느 카드인지 보이게
-                if (_status == StatusKind.Alarm)
-                    using (var pen = new Pen(ApcTheme.Status(StatusKind.Alarm), S(3))) g.DrawRectangle(pen, S(1), S(1), Width - S(3), Height - S(3));
-
-                var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis;
-                int lamp = S(20);
-                g.DrawImage(ApcTheme.GetImage("lamp_" + _status.ToString().ToLowerInvariant()), new Rectangle(Width - pad - lamp, (titleH - lamp) / 2, lamp, lamp));
-                TextRenderer.DrawText(g, _title, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(pad, 0, Width - pad * 3 - lamp, titleH), ApcTheme.C(c.Text), flags);
-
-                int half = (Width - pad * 2) / 2, top = titleH + S(12);
-                DrawValue(g, "온도", _temp, "℃", new Point(pad, top), half, TempColor());
-                DrawValue(g, "습도", _humi, "%", new Point(pad + half, top), half, ApcTheme.C(c.Text));
-
-                int lineY = Height - S(44);
-                using (var pen = new Pen(ApcTheme.C(c.GridLine))) g.DrawLine(pen, pad, lineY, Width - pad, lineY);
-                var footColor = _status == StatusKind.Alarm || _status == StatusKind.Warn ? ApcTheme.Status(_status) : ApcTheme.C(c.TextMuted);
-                TextRenderer.DrawText(g, _footer, ApcTheme.GetFont(), new Rectangle(pad, lineY, Width - pad * 2, Height - lineY), footColor, flags);
-            }
-
-            private Color TempColor()
-            {
-                if (_temp >= TempAlarm) return ApcTheme.Status(StatusKind.Alarm);
-                if (_temp >= TempWarn) return ApcTheme.Status(StatusKind.Warn);
-                return ApcTheme.C(ApcTheme.Current.Colors.Text);
-            }
-
-            private static void DrawValue(Graphics g, string label, double? value, string unit, Point at, int width, Color color)
-            {
-                var muted = ApcTheme.C(ApcTheme.Current.Colors.TextMuted);
-                TextRenderer.DrawText(g, label, ApcTheme.GetFont(), new Point(at.X, at.Y), muted);
-                using (var big = new Font(ApcTheme.Current.FontFamily, ApcTheme.Current.FontSize * 2.6f, FontStyle.Bold))
-                using (var unitFont = new Font(ApcTheme.Current.FontFamily, ApcTheme.Current.FontSize * 1.3f))
-                {
-                    string text = value.HasValue ? value.Value.ToString("0.0") : "--";
-                    var pos = new Point(at.X - S(4), at.Y + S(22));
-                    TextRenderer.DrawText(g, text, big, pos, value.HasValue ? color : muted);
-                    var size = TextRenderer.MeasureText(g, text, big);
-                    TextRenderer.DrawText(g, unit, unitFont, new Point(pos.X + size.Width - S(6), pos.Y + size.Height - S(28)), muted);
-                }
-            }
+                Title = title,
+                Value = temp.HasValue ? temp.Value.ToString("0.0") : "",
+                Unit = "℃",
+                Footer = (humi.HasValue ? "습도 " + humi.Value.ToString("0.0") + " %RH · " : "") + footer,
+                Status = status,
+                ShowLamp = true,
+                Size = new Size(S(340), S(170)),
+                Margin = new Padding(0, 0, S(16), S(16)),
+            };
         }
     }
 }
