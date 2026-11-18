@@ -21,7 +21,8 @@ namespace APC.UI.Tools
             if (theme == null || !(c is Label || IsApc(c))) return;
             if (c.Font.Name == theme.Font.Name && Math.Abs(c.Font.SizeInPoints - theme.Font.SizeInPoints) <= 0.1f) return;
             issues.Add(path + ": 테마와 다른 글꼴(" + c.Font.Name + " " + c.Font.SizeInPoints + "pt, 테마 " + theme.Font.Name + " "
-                       + theme.Font.SizeInPoints + "pt) — Font를 직접 만들지 말고 ApcTheme.GetFont()");
+                       + theme.Font.SizeInPoints + "pt) — Font를 직접 만들지 말고 ApcTheme.GetFont(). 큰 글자(현재값·수량·판정·시각)는 "
+                       + "ApcValueCard·ApcJudgePanel·ApcStatusTile이 정한다");
         }
 
         // 같은 줄 오른쪽에 입력칸이 있는 이름표는 보통 굵기(굵게는 묶음·구획 제목만)
@@ -33,7 +34,8 @@ namespace APC.UI.Tools
 
         private static bool IsInput(Control c)
         {
-            return !Is(c, "ApcButton") && (FieldTypes.Contains(c.GetType().Name) || FieldTypes.Contains(Base(c)));
+            // 상속 단계와 상관없이(고객 프로젝트의 MyBox : MyBaseBox : ApcTextBox도)
+            return !Is(c, "ApcButton") && FieldTypes.Any(t => Is(c, t));
         }
 
         private static bool Overlaps(Control a, Control b)

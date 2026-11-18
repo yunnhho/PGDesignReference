@@ -119,7 +119,16 @@ namespace APC.UI.Checks
                 foreach (var i in issues) Console.WriteLine("      " + i);
                 Check(issues.Count == 0, "lint: helper dialog is clean");
             }
+            // 고객 프로젝트가 두 단계 이상 상속한 입력칸도 입력칸으로 본다
+            Check(Lint(p => { p.Controls.Add(Caption("모델명", 0, h, FontStyle.Bold)); p.Controls.Add(new DeepTextBox { Bounds = new Rectangle(110, 0, 150, h) }); })
+                .Any(i => i.Contains("이름표가 굵게")), "lint: deep ApcTextBox subclass is an input");
+            // 큰 표시 글자(4-1: 화면에서 Font를 키우지 않음)는 걸리되, 큰 글자는 표시 컨트롤로 하라고 안내한다
+            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "A", Left = 300, Width = 60 }); p.Controls.Add(new Label { Text = "12:00", Font = new Font(ApcTheme.Current.FontFamily, 24f), AutoSize = false, Bounds = new Rectangle(0, 0, 200, 50) }); })
+                .Any(i => i.Contains("테마와 다른 글꼴") && i.Contains("ApcValueCard")), "lint: large display text points to display controls");
         }
+
+        private class MidTextBox : ApcTextBox { }
+        private sealed class DeepTextBox : MidTextBox { }
 
         private static Label Caption(string text, int y, int h, FontStyle style)
         {
