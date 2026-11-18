@@ -39,7 +39,7 @@ namespace APC.UI.Checks
                 cb.Items.AddRange(new object[] { "A", "B" });
                 var h = cb.Handle;
                 Check(cb.DropDownStyle == ComboBoxStyle.DropDownList, "combo: list only");
-                Check(Math.Abs(cb.Height - fieldH) <= 2, "combo: same height as text field (was " + cb.Height + ")");
+                Check(cb.Height == fieldH, "combo: same height as text field (was " + cb.Height + ")");
             }
 
             decimal v;
@@ -61,6 +61,19 @@ namespace APC.UI.Checks
                 Check(nb.Value == 7 && changed == 2, "numeric: typed value committed");
                 nb.Minimum = 8;
                 Check(nb.Value == 8, "numeric: raising minimum re-clamps value");
+
+                // 배치: 버튼은 칸 안 오른쪽(콤보와 같은 모양) — 별도 버튼 컨트롤 없이 ▲ 위 / ▼ 아래
+                nb.Size = new Size(ApcTheme.Px(150), fieldH);
+                nb.PerformLayout();
+                var area = nb.ButtonArea;
+                Check(nb.Controls.Count == 1 && nb.TextBox.Right <= area.Left && area.Right == nb.Width && area.Height == nb.Height,
+                    "numeric: up/down area inside the field, right of the text");
+                Check(nb.SegmentAt(new Point(area.Left + 2, 2)) == 0 && nb.SegmentAt(new Point(area.Left + 2, nb.Height - 3)) == 1
+                    && nb.SegmentAt(new Point(2, 2)) == -1, "numeric: top half = up, bottom half = down");
+                nb.OnSegmentClick(0);
+                bool up = nb.Value == 9;
+                nb.OnSegmentClick(1);
+                Check(up && nb.Value == 8, "numeric: up/down step by increment");
             }
 
             DateTime d;
@@ -69,6 +82,13 @@ namespace APC.UI.Checks
             Check(!ApcDateBox.TryParse("0001-01-01", out d), "date: rejects dates outside 1900~2999");
             using (var edge = new ApcDateBox { Value = DateTime.MinValue })
                 Check(edge.Value == ApcDateBox.MinDate, "date: value clamped to MinDate");
+            Check(TrianglePixels(true) == TrianglePixels(false) && TrianglePixels(true) > 0, "field: up and down triangles are the same size");
+            using (var db = new ApcDateBox())
+            {
+                db.PerformLayout();
+                Check(db.Controls.Count == 1 && db.TextBox.Right <= db.ButtonArea.Left && db.ButtonArea.Right == db.Width
+                    && db.SegmentAt(new Point(db.Width - 3, db.Height / 2)) == 0, "date: calendar button area inside the field");
+            }
             using (var cal = new ApcCalendar(ApcDateBox.MinDate))
             {
                 cal.ShiftMonth(-1);
@@ -110,6 +130,19 @@ namespace APC.UI.Checks
                 var only = alert.AcceptButton as ApcButton;
                 Check(buttons == 1 && only != null && alert.CancelButton == only && only.DialogResult == DialogResult.OK,
                     "alert: single ok button closes on Enter and Esc");
+            }
+        }
+
+        private static int TrianglePixels(bool up)
+        {
+            using (var bmp = new Bitmap(40, 40))
+            using (var g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.White);
+                APC.UI.Drawing.FieldFrame.DrawTriangle(g, new Rectangle(0, 0, 40, 20), Color.Black, up);
+                int n = 0;
+                for (int y = 0; y < 40; y++) for (int x = 0; x < 40; x++) if (bmp.GetPixel(x, y).R < 128) n++;
+                return n;
             }
         }
     }

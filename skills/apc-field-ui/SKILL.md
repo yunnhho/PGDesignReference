@@ -68,7 +68,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 화면 요소 | 컨트롤 |
 |---|---|
 | 글자 입력 / 바코드 | `ApcTextBox` / `ApcScanBox`: 화면의 `OnHandleCreated`에서 `var f = FindForm(); if (f != null) _scan.Attach(f);`(생성자엔 폼이 없다) |
-| 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment) / `ApcDateBox` |
+| 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment, ▲/▼는 칸 안 오른쪽에 위아래로) / `ApcDateBox` |
 | 버튼 | `ApcButton`(Normal·Primary·Danger) |
 | 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`) |
 | 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status) |
@@ -82,6 +82,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 - **표준 컨트롤 금지**: `Button`/`TextBox`/`ComboBox`/`NumericUpDown`/`DateTimePicker`/`DataGridView`/`Form`과 `Control`을 상속해 직접 그린 카드·타일·그래프를 만들지 않는다. 위 표의 Apc 컨트롤을 쓴다. 표준으로 쓰는 것은 `Label`과 배치용 `Panel`/`FlowLayoutPanel`/`TableLayoutPanel`뿐. 표에 없는 요소가 꼭 필요하면 만들지 말고 사용자에게 알린다(라이브러리에 추가할 후보).
 - 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
 - **dialog는 `ApcForm`을 상속한 별도 폼**이다(`ApcDialog`는 확인창만 띄우는 static 클래스라 상속할 수 없다). 생성자에서 `TitleText`, `Resizable = false`, `MinimizeBox = false`, `ShowInTaskbar = false`, `StartPosition = FormStartPosition.CenterParent`, `ClientSize`를 정하고, 내용은 `ContentBounds.Top` 아래에 둔다. 메인에서 `dlg.ShowDialog(FindForm())`.
+- dialog 아래 버튼은 **[취소][확인]** 순서(확정 버튼이 오른쪽 끝, `ApcDialog`와 같음). 입력칸과 버튼을 한 줄에 둘 때는 높이를 같게(`ApcTextBox.BaseHeight`)·위 Margin 0으로 맞춘다 — `Row()`는 자동으로 맞춘다.
 - 확인: 되돌릴 수 없는 동작은 `ApcDialog.Confirm(this, "...")`(빨간 확인), 저장처럼 위험하지 않은 것은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`. 입력 오류 안내는 `ApcDialog.Alert(this, "...")`. 메인 화면의 이상 알림은 `Alarm.Push("...")`(알람바).
 - 카드·타일을 한 줄에 같은 폭으로: `EquipmentView`의 `Columns(height, cells)`를 그대로 쓴다(`TableLayoutPanel` 퍼센트 열, 각 칸 `Dock = Fill` + `Controls.Add(cell, i, 0)`, 칸 간격 = 오른쪽 `Margin`, 줄 간격 = `Padding.Bottom`).
 - `ApcGrid`는 사용자가 누르기 전엔 선택 행이 없다(`CurrentRow == null`). "선택한 행" 버튼은 null이면 아무것도 하지 않게 한다.

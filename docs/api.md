@@ -1,4 +1,4 @@
-# APC.UI API (v1.4.0.0)
+# APC.UI API (v1.5.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -23,6 +23,13 @@
 - `ApcButton()`
 - `ApcButtonVariant Variant { get; set; }`
 
+## ApcButtonField
+
+`APC.UI.Controls` · class : UserControl
+
+입력칸 + 칸 안 오른쪽 버튼 영역(콤보 화살표와 같은 모양). 테두리·포커스 테두리는 이 컨트롤이 그리고, 안쪽 입력칸은 테두리 없이 들어간다. 버튼 영역은 위아래로 나눌 수 있다(숫자칸 ▲▼). ApcNumericBox·ApcDateBox의 바탕.
+- `ApcTextBox TextBox { get; }` — 안쪽 입력칸(포커스 지정·스캔 복원 대상).
+
 ## ApcButtonVariant
 
 `APC.UI.Controls` · enum
@@ -38,11 +45,10 @@
 
 ## ApcDateBox
 
-`APC.UI.Controls` · class : UserControl
+`APC.UI.Controls` · class : ApcButtonField
 
-날짜 입력: 입력칸(yyyy-MM-dd) + 달력 버튼. 버튼을 누르면 달력이 펼쳐지고, 날짜를 누르면 닫힌다. 직접 입력은 yyyy-MM-dd / yyyyMMdd를 받아 Enter 또는 칸을 떠날 때 확정, 틀리면 이전 값. ↑↓ 키는 하루씩.
+날짜 입력: 입력칸(yyyy-MM-dd) + 칸 안 오른쪽 ▼ 버튼 영역(콤보와 같은 모양). 누르면 달력이 펼쳐지고, 날짜를 누르면 닫힌다. 직접 입력은 yyyy-MM-dd / yyyyMMdd를 받아 Enter 또는 칸을 떠날 때 확정, 틀리면 이전 값. ↑↓ 키는 하루씩.
 - `ApcDateBox()`
-- `ApcTextBox TextBox { get; }`
 - `DateTime Value { get; set; }`
 - `const string Format`
 - `event EventHandler ValueChanged`
@@ -135,11 +141,10 @@
 
 ## ApcNumericBox
 
-`APC.UI.Controls` · class : UserControl
+`APC.UI.Controls` · class : ApcButtonField
 
-숫자 입력: [−] 입력칸 [+]. 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정. 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
+숫자 입력: 칸 안 오른쪽에 ▲(위)/▼(아래) 버튼 영역(콤보 화살표와 같은 모양). 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정. 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
 - `ApcNumericBox()`
-- `ApcTextBox TextBox { get; }` — 안쪽 입력칸(포커스 지정·스캔 복원 대상).
 - `decimal Increment { get; set; }`
 - `decimal Maximum { get; set; }`
 - `decimal Minimum { get; set; }`

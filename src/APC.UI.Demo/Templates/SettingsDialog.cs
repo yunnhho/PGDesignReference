@@ -7,7 +7,7 @@ namespace APC.UI.Demo.Templates
 {
     /// <summary>
     /// 통신·장비 설정 dialog 골격(참고: Failure Analysis 시스템 설정). 블록(설비 묶음)마다 ApcGroup 하나에
-    /// 포트·신호·로직 선택 + 연결 시도, 아래 공통 설정 묶음, 맨 아래 왼쪽 [비밀번호 변경] / 오른쪽 [저장][취소].
+    /// 포트·신호·로직 선택 + 연결 시도, 아래 공통 설정 묶음, 맨 아래 왼쪽 [비밀번호 변경] / 오른쪽 [취소][저장].
     /// 저장은 Confirm("저장") 뒤 결과를 넘긴다. 실제 연결 시도·저장은 부른 쪽 데이터 인터페이스가 한다.
     /// </summary>
     internal sealed class SettingsDialog : ApcForm
@@ -32,14 +32,14 @@ namespace APC.UI.Demo.Templates
 
             var content = new Panel { Bounds = ContentBounds, Padding = new Padding(pad), BackColor = Color.Transparent };
 
-            // 맨 아래 버튼 줄: 왼쪽 비밀번호 변경, 오른쪽 [저장][취소]
+            // 맨 아래 버튼 줄: 왼쪽 비밀번호 변경, 오른쪽 [취소][저장]
             var buttons = new Panel { Dock = DockStyle.Bottom, Height = btnH, BackColor = Color.Transparent };
             var password = new ApcButton { Text = "비밀번호 변경", Width = ApcTheme.Px(150), Dock = DockStyle.Left };
             var save = new ApcButton { Text = "저장", Variant = ApcButtonVariant.Primary, Width = ApcTheme.Px(120), Dock = DockStyle.Right };
             var cancel = new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel, Width = ApcTheme.Px(110), Dock = DockStyle.Right };
-            buttons.Controls.Add(save);
-            buttons.Controls.Add(new Panel { Width = gap, Dock = DockStyle.Right, BackColor = Color.Transparent });
             buttons.Controls.Add(cancel);
+            buttons.Controls.Add(new Panel { Width = gap, Dock = DockStyle.Right, BackColor = Color.Transparent });
+            buttons.Controls.Add(save);
             buttons.Controls.Add(password);
             password.Click += (s, e) => { using (var d = new AdminPasswordDialog("비밀번호 변경")) d.ShowDialog(this); };
             save.Click += (s, e) => { if (ApcDialog.Confirm(this, "설정을 저장할까요?", "저장", ApcButtonVariant.Primary)) DialogResult = DialogResult.OK; };

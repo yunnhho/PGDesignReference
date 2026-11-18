@@ -66,9 +66,9 @@ namespace APC.UI.Demo.Templates
             var cancel = new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel, Width = ApcTheme.Px(130), Dock = DockStyle.Right };
             var gap = new Panel { Width = ApcTheme.Px(12), Dock = DockStyle.Right, BackColor = Color.Transparent };
             var buttons = new Panel { Dock = DockStyle.Bottom, Height = btnH + pad, Padding = new Padding(0, pad, 0, 0), BackColor = Color.Transparent };
-            buttons.Controls.Add(ok);
+            buttons.Controls.Add(cancel);
             buttons.Controls.Add(gap);
-            buttons.Controls.Add(cancel);   // Dock=Right는 나중 Add가 바깥(오른쪽) → [확인][취소]
+            buttons.Controls.Add(ok);   // Dock=Right는 나중 Add가 바깥(오른쪽) → [취소][확인]
             ok.Click += (s, e) => Confirm();
 
             var spacer = new Panel { Dock = DockStyle.Top, Height = pad, BackColor = Color.Transparent };

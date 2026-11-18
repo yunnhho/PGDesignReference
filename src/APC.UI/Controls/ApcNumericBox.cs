@@ -8,15 +8,12 @@ using APC.UI.Theming;
 namespace APC.UI.Controls
 {
     /// <summary>
-    /// 숫자 입력: [−] 입력칸 [+]. 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정.
+    /// 숫자 입력: 칸 안 오른쪽에 ▲(위)/▼(아래) 버튼 영역(콤보 화살표와 같은 모양). 버튼·↑↓ 키·마우스 휠은 Increment만큼, 직접 입력은 Enter 또는 칸을 떠날 때 확정.
     /// 범위 밖은 Minimum/Maximum으로 잘리고, 숫자가 아니면 이전 값으로 되돌린다. 소수 자릿수는 DecimalPlaces.
     /// </summary>
-    public class ApcNumericBox : UserControl
+    public class ApcNumericBox : ApcButtonField
     {
-        private readonly ApcTextBox _text = new ApcTextBox { TextAlign = HorizontalAlignment.Right };
-        private readonly ApcButton _down = new ApcButton { Text = "−", TabStop = false };
-        private readonly ApcButton _up = new ApcButton { Text = "+", TabStop = false };
-
+        private readonly ApcTextBox _text;
         private decimal _value;
         private decimal _minimum;
         private decimal _maximum = 100;
@@ -25,20 +22,13 @@ namespace APC.UI.Controls
 
         public event EventHandler ValueChanged;
 
-        public ApcNumericBox()
+        public ApcNumericBox() : base(new ApcTextBox { TextAlign = HorizontalAlignment.Right })
         {
-            BackColor = Color.Transparent;
-            if (ApcTheme.Current != null) _down.Font = _up.Font = ApcTheme.GetFont(FontStyle.Bold);
-            _down.Click += (s, e) => Step(-1);
-            _up.Click += (s, e) => Step(1);
+            _text = TextBox;
             _text.KeyDown += OnTextKeyDown;
             _text.KeyPress += OnTextKeyPress;
             _text.Leave += (s, e) => Commit();
             _text.MouseWheel += (s, e) => Step(Math.Sign(e.Delta));
-            Controls.Add(_text);
-            Controls.Add(_down);
-            Controls.Add(_up);
-            Size = new Size(S(150), S(ApcTextBox.BaseHeight));
             ShowValue();
         }
 
@@ -83,9 +73,6 @@ namespace APC.UI.Controls
             get { return _decimalPlaces; }
             set { _decimalPlaces = Math.Max(0, Math.Min(10, value)); Value = _value; }
         }
-
-        /// <summary>안쪽 입력칸(포커스 지정·스캔 복원 대상).</summary>
-        public ApcTextBox TextBox { get { return _text; } }
 
         /// <summary>입력 글자를 값으로. 숫자가 아니면 false. 범위·자릿수는 맞춰서 돌려준다.</summary>
         internal static bool TryParse(string text, decimal min, decimal max, int decimals, out decimal value)
@@ -146,26 +133,8 @@ namespace APC.UI.Controls
             if (h != null) h(this, e);
         }
 
-        protected override void OnLayout(LayoutEventArgs e)
-        {
-            base.OnLayout(e);
-            int h = Height, gap = S(4);
-            _down.SetBounds(0, 0, h, h);
-            _up.SetBounds(Width - h, 0, h, h);
-            _text.SetBounds(h + gap, 0, Math.Max(S(20), Width - 2 * (h + gap)), h);
-        }
-
-        protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
-        {
-            base.SetBoundsCore(x, y, width, Math.Max(height, ApcTheme.MinHeight), specified);
-        }
-
-        protected override void OnEnabledChanged(EventArgs e)
-        {
-            base.OnEnabledChanged(e);
-            _text.Enabled = _down.Enabled = _up.Enabled = Enabled;
-        }
-
-        private static int S(int px) { return (int)Math.Round(px * ApcTheme.Scale); }
+        internal override int SegmentCount { get { return 2; } }
+        internal override bool SegmentPointsUp(int index) { return index == 0; }
+        internal override void OnSegmentClick(int index) { Step(index == 0 ? 1 : -1); }
     }
 }

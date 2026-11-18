@@ -40,8 +40,8 @@ namespace APC.UI.Demo.Templates
             var ok = new ApcButton { Text = "확인", Variant = ApcButtonVariant.Primary, DialogResult = DialogResult.OK };
             var cancel = new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel };
             int by = ClientSize.Height - ApcTheme.Px(20) - bh;
-            ok.SetBounds(w / 2 - gap / 2 - bw, by, bw, bh);
-            cancel.SetBounds(w / 2 + gap / 2, by, bw, bh);
+            cancel.SetBounds(w / 2 - gap / 2 - bw, by, bw, bh);   // [취소][확인] — 확정 버튼이 오른쪽
+            ok.SetBounds(w / 2 + gap / 2, by, bw, bh);
 
             Controls.Add(caption);
             Controls.Add(_password);

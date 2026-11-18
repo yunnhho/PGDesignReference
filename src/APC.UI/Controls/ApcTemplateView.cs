@@ -61,6 +61,9 @@ namespace APC.UI.Controls
                 Padding = new Padding(0, 0, 0, S(10)),
                 BackColor = Color.Transparent,
             };
+            // 입력칸(기본 Margin 3)과 버튼(Margin 0)이 섞이면 위아래가 어긋난다 → 입력·버튼은 위 0, 오른쪽 간격만 둔다. 이름표는 자기 Margin(글자 높이 맞춤) 유지.
+            foreach (var c in controls)
+                if (!(c is Label)) c.Margin = new Padding(0, 0, Math.Max(c.Margin.Right, S(8)), 0);
             row.Controls.AddRange(controls);
             return row;
         }
