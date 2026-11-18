@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -54,11 +55,19 @@ namespace APC.UI.Checks
             box5b.Process(WM_KEYDOWN, VK_RETURN, 40090, num);
             Check(num.Text == "1", "#5b filtered field restored (was '" + num.Text + "')");
 
-            // #7 리사이즈 가능하면 자식이 그립 영역을 덮지 않게 Padding 확보
-            using (var f = new ApcForm())
+            // #7 내용은 창을 꽉 채우고(1px 테두리만), 가장자리 리사이즈는 그 위를 덮은 자식 컨트롤에서도 된다
+            using (var f = new ApcForm { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000), Size = new Size(800, 600) })
             {
-                Check(f.Padding.Left >= f.ResizeGrip && f.Padding.Right >= f.ResizeGrip && f.Padding.Bottom >= f.ResizeGrip, "#7 padding covers resize grip");
+                var fill = new Panel { Dock = DockStyle.Fill };
+                f.Controls.Add(fill);
+                f.Show();
+                Application.DoEvents();
+                Check(f.Padding.Left == 1 && f.Padding.Right == 1 && f.Padding.Bottom == 1, "#7 resizable form content fills to 1px border");
+                Check(f.EdgeHit(fill, new Point(1, 100)) == 10 && f.EdgeHit(fill, new Point(fill.Width - 2, fill.Height - 2)) == 17, "#7 edge resize works over a docked child (left, bottom-right)");
+                Check(f.EdgeHit(fill, new Point(100, 100)) == 1, "#7 child interior stays client");
+                f.Hide();
                 f.Resizable = false;
+                Check(f.EdgeHit(fill, new Point(1, 100)) == 1, "#7 non-resizable form has no edge resize");
                 Check(f.Padding.Left == 1, "#7 non-resizable keeps 1px border");
                 Check(f.ContentBounds.Left == f.Padding.Left, "#7 content bounds follow padding");
             }
