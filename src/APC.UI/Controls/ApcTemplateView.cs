@@ -23,7 +23,7 @@ namespace APC.UI.Controls
             Header.Title = title;
             Header.Status = StatusKind.Run;
             Header.StatusText = "가동중";
-            Body.Padding = new Padding(S(16));
+            Body.Padding = new Padding(S(ApcLayout.Pad));
             Controls.Add(Body);     // Fill은 마지막에 도킹되도록 먼저 추가
             Controls.Add(Alarm);
             Controls.Add(Header);
@@ -47,7 +47,7 @@ namespace APC.UI.Controls
 
         protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)
         {
-            return new ApcButton { Text = text, Variant = variant, Width = S(width), Height = S(34), Margin = new Padding(0, 0, S(8), 0) };
+            return new ApcButton { Text = text, Variant = variant, Width = S(width), Height = S(ApcLayout.FieldHeight), Margin = new Padding(0, 0, S(ApcLayout.ItemGap), 0) };
         }
 
         /// <summary>
@@ -58,13 +58,13 @@ namespace APC.UI.Controls
         {
             if (cells == null || cells.Length == 0) throw new ArgumentException("cells가 비었습니다.", "cells");
             if (percents != null && percents.Length != cells.Length) throw new ArgumentException("percents 개수가 cells와 다릅니다.", "percents");
-            var t = new TableLayoutPanel { Dock = DockStyle.Top, Height = height + S(12), ColumnCount = cells.Length, RowCount = 1, Padding = new Padding(0, 0, 0, S(12)), BackColor = Color.Transparent };
+            var t = new TableLayoutPanel { Dock = DockStyle.Top, Height = height + S(ApcLayout.RowGap), ColumnCount = cells.Length, RowCount = 1, Padding = new Padding(0, 0, 0, S(ApcLayout.RowGap)), BackColor = Color.Transparent };
             t.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             for (int i = 0; i < cells.Length; i++)
             {
                 t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, percents == null ? 100f / cells.Length : percents[i]));
                 cells[i].Dock = DockStyle.Fill;
-                cells[i].Margin = new Padding(0, 0, i == cells.Length - 1 ? 0 : S(12), 0);
+                cells[i].Margin = new Padding(0, 0, i == cells.Length - 1 ? 0 : S(ApcLayout.RowGap), 0);
                 t.Controls.Add(cells[i], i, 0);
             }
             return t;
@@ -78,12 +78,12 @@ namespace APC.UI.Controls
                 Dock = DockStyle.Top,
                 AutoSize = true,
                 WrapContents = false,
-                Padding = new Padding(0, 0, 0, S(10)),
+                Padding = new Padding(0, 0, 0, S(ApcLayout.RowGap)),
                 BackColor = Color.Transparent,
             };
             // 입력칸(기본 Margin 3)과 버튼(Margin 0)이 섞이면 위아래가 어긋난다 → 입력·버튼은 위 0, 오른쪽 간격만 둔다. 이름표는 자기 Margin(글자 높이 맞춤) 유지.
             foreach (var c in controls)
-                if (!(c is Label)) c.Margin = new Padding(0, 0, Math.Max(c.Margin.Right, S(8)), 0);
+                if (!(c is Label)) c.Margin = new Padding(0, 0, Math.Max(c.Margin.Right, S(ApcLayout.ItemGap)), 0);
             row.Controls.AddRange(controls);
             return row;
         }

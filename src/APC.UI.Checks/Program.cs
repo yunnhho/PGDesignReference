@@ -26,6 +26,7 @@ namespace APC.UI.Checks
             Run("review-fix", RunReviewFixChecks);
             Run("input", RunInputChecks);
             Run("display", RunDisplayChecks);
+            Run("dialog-layout", RunDialogLayoutChecks);
             Run("lint", RunLintChecks);
             Run("tools", RunToolChecks);  // 마지막: render가 전역 테마를 바꾼다
 
