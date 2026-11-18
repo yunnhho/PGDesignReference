@@ -55,7 +55,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 작업 입력: 시작·실적·불량 | `WorkStartView`, `ProductionView`, `DefectView` |
 | 조회 | `HistoryView` |
 
-- **템플릿 가져오기**: 템플릿은 데모 프로젝트의 `internal sealed` 클래스라 참조할 수 없다. 읽고 프로젝트에 새 파일로 옮겨 쓴다 — 네임스페이스를 프로젝트 것으로, 클래스 이름을 화면에 맞게, 코드에 박힌 샘플 값(배열·`Rows.Add` 반복)은 `SampleMainViewSource`로 옮기고 화면은 `IMainViewSource`에서 받는다. `Columns()`·`Row()`·`Caption()`·`Button()`·`S()`는 `ApcTemplateView`에 있으니 옮기지 않는다.
+- **템플릿 가져오기**: 템플릿은 데모 프로젝트의 `internal sealed` 클래스라 참조할 수 없다. 읽고 프로젝트에 새 파일로 옮겨 쓴다 — 네임스페이스를 프로젝트 것으로, 클래스 이름을 화면에 맞게, 코드에 박힌 샘플 값(배열·`Rows.Add` 반복)은 `SampleMainViewSource`로 옮기고 화면은 `IMainViewSource`에서 받는다. `Columns()`·`Row()`·`Caption()`·`SectionTitle()`·`Button()`·`S()`는 `ApcTemplateView`에 있으니 옮기지 않는다.
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
 - `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다. `MainForm.TitleText`도 화면 이름으로 바꾼다(기본값은 영문 프로젝트명).
 - **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
@@ -75,8 +75,19 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 칸·슬롯별 LOT 입력(표에 바로 스캔, 칸 수 가변, 빈 칸 Alert) | `LotInputDialog` |
 | 통신·장비 설정(블록별 `ApcGroup` 묶음 + 공통 설정 + 비밀번호 변경) | `SettingsDialog` |
 
-- dialog 아래 버튼은 **[취소][확인]** 순서(확정 버튼이 오른쪽 끝, `ApcDialog`와 같음). 입력칸과 버튼을 한 줄에 둘 때는 높이를 같게(`ApcTextBox.BaseHeight`)·위 Margin 0으로 맞춘다.
-- `Columns()`·`Row()`·`S()`는 `ApcTemplateView` 것이라 dialog에서는 쓸 수 없다. 이름표+입력칸 행은 `RecipeDialog`의 `AddRow`처럼 직접 만든다.
+- **dialog 배치는 `ApcForm` 헬퍼로만 한다.** 숫자(여백·행 높이·버튼 크기·`ClientSize`)를 직접 정하지 않는다 — 치수는 `ApcLayout`이 정하고 표시 직전에 한 번에 배치된다. 생성자에서 위→아래 순서로 부른다:
+
+| 헬퍼 | 하는 일 |
+|---|---|
+| `SetupDialog(title, width[, height])` | 제목·크기 고정·작업표시줄 숨김·부모 가운데. 폭은 배율 전 px. height 생략 = 내용으로 자동 |
+| `AddFieldRow(caption, field[, trailing...])` | 이름표 + 입력칸 한 줄. 이름표 열은 dialog 전체에 하나(가장 긴 이름표 폭) → 입력칸 왼쪽 끝이 모두 같다. trailing이 없으면 입력칸이 남은 폭을 채우고, 있으면(`FieldCaption("신호")`, 입력칸, 버튼…) 각자 `Width`로 왼→오 |
+| `AddGroup(title)` → `AddFieldRow(group, ...)` | 관련 행 묶음(`ApcGroup`). 묶음 사이 16 > 행 사이 12로 구분된다 |
+| `AddContent(c)` / `AddContentFill(c)` | 표·상태 줄·그래프. `AddContent`는 `c.Height`(`ApcTheme.Px`) 그대로, `AddContentFill`은 남은 높이(`SetupDialog`에 height 필수, 하나만) |
+| `SectionTitle(text)` | 구획 제목(굵게). `AddContent(SectionTitle("..."))` |
+| `SetFooter(cancel, confirm[, left...])` | 오른쪽 아래 **[취소][확정]**(확정이 오른쪽 끝, 110×40), 왼쪽 보조 버튼(`비밀번호 변경` 등). Esc = 취소(보기용은 `SetFooter(null, 닫기)`). Enter(`AcceptButton`)는 스캔이 없는 dialog에서만 직접 지정 |
+
+- 이름표는 `AddFieldRow`가 만든다(보통 굵기·테마 글꼴). `Label`·`Font`·`Panel` 버튼 줄을 직접 만들지 않는다. 한 dialog가 폭에 안 들어가면(render "부모 밖으로 넘침") `SetupDialog` 폭을 늘린다.
+- `Columns()`·`Row()`·`S()`는 `ApcTemplateView` 것이라 dialog에서는 쓸 수 없다(dialog 크기는 `ApcTheme.Px`).
 
 ### 4c. 컨트롤
 
@@ -110,7 +121,9 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 값 없음(대기·통신 전) | 빈칸(정지 설비라도 읽은 값이 있으면 그 값). `ApcValueCard.Value = ""`(값·단위 모두 안 그림), 표 셀은 `""`. `-`, `--`, `0` 쓰지 않음 |
 | 대기 중 직전 값 | 판정 화면이 대기(READY)인데 측정값 카드에 직전 검사 값을 남기면 `Footer`에 출처를 적는다(예: "직전 검사 CELL0260418 · 10:15:00"). 출처 없이 남기지 않는다 |
 | 상태 경계값 | 상·하한과 같은 값은 그 상태에 넣는다(경고 근접·한계 판정은 `>=`/`<=`). 상태 문구·램프·카드 색이 같은 판정 함수 하나를 쓴다 |
-| 글자 크기 | theme `fontSize` 그대로(10). 화면에서 `Font`를 따로 키우거나 줄이지 않음(판정판·카드 큰 글자는 컨트롤이 정함) |
+| 글꼴 | 테마 글꼴·`fontSize` 그대로(10). `new Font(...)`·`FontSize * 배수` 금지, 글자는 `ApcTheme.GetFont()`만. 굵게는 구획 제목(`SectionTitle`)·묶음 제목(`ApcGroup`)·값 강조에만 — 입력칸 앞 이름표(`Caption`, `AddFieldRow`)는 보통 굵기. 판정판·카드 큰 글자는 컨트롤이 정함 |
+| 단위 표기 | 입력은 이름표 괄호 `하중 상한 (kN)`, 표시는 `ApcValueCard.Unit`·표 열 제목 `최대 하중(kN)`. 값 칸 안에 단위를 붙이지 않음 |
+| 간격 | 숫자로 정하지 않는다. 화면은 `Columns()`·`Row()`(줄 사이 12), dialog는 4b 헬퍼(여백 16·행 사이 12·묶음 사이 16·버튼 110×40). 값은 `ApcLayout` |
 | 샘플 데이터 | 이력·목록 표는 표 높이만큼 행을 채운다. 행 수는 짐작하지 말고 첫 render가 알려 주는 수로 맞춘다("참고: 표 아래가 빔 … N개로", "표 세로 스크롤바 … N개로"). 설비 목록처럼 개수가 정해진 표는 그대로. 늘린 행은 같은 문구·같은 간격을 되풀이하지 않는다(설비·문구·값·시각 간격을 섞는다). 상태는 정상(Run) 위주에 그 화면에서 뜻이 있는 이상 상태를 섞는다(모니터링: Warn·Alarm·Stop 각각 하나 이상, 판정: NG(Alarm) 몇 건). 집계(금일 생산·OK·NG·불량률)는 서로 맞고 이력 행 수 이상 |
 
 ## 5. 새 그림이 필요할 때만
@@ -132,7 +145,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
    `--size`는 생략한다: 크기 고정 dialog(`Resizable = false`)는 자기 크기, 메인 폼·화면은 1920×1080으로 그린다. 출력 폴더는 없으면 만든다.
    예: `T=/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe; $T render "$(cygpath -w bin/Debug/App.exe)" RecipeDialog "$(cygpath -w "bin/Debug/themes/고객사")" "$(cygpath -w out/RecipeDialog.png)"`
    캡처를 받았다면 `--compare <캡처.png>` → `<out>.compare.png`
-3. **render 점검 0건까지 고친다.** render는 배치를 검사해 `점검: <컨트롤 경로>: <문제>`와 마지막 줄 `점검 N건`을 출력한다 — 글자 잘림, 부모 밖 넘침, 형제 겹침, 같은 줄 입력칸·버튼 위/높이 어긋남, 표준 컨트롤·직접 그린 `Control`, 표 스크롤바, 짧은 값 열이 표 폭 절반 넘게 차지, [확인][취소] 순서, 글자 전체 선택된 채 표시(숫자칸·날짜칸 안쪽 포함). 고치고 다시 render해서 `점검 0건`을 확인한다. `참고:` 줄은 건수에 들지 않지만 4-1 샘플 기준대로 판단한다.
+3. **render 점검 0건까지 고친다.** render는 배치를 검사해 `점검: <컨트롤 경로>: <문제>`와 마지막 줄 `점검 N건`을 출력한다 — 글자 잘림, 부모 밖 넘침, 형제 겹침, 같은 줄 입력칸·버튼 위/높이 어긋남, 표준 컨트롤·직접 그린 `Control`, 표 스크롤바, 짧은 값 열이 표 폭 절반 넘게 차지, [확인][취소] 순서, 글자 전체 선택된 채 표시(숫자칸·날짜칸 안쪽 포함), 테마와 다른 글꼴, 입력 행 이름표 굵게, 입력칸 왼쪽 끝 어긋남, 입력 행 간격 다름, dialog 하단 버튼 크기·하단 여백·버튼 위 빈 공간. 고치고 다시 render해서 `점검 0건`을 확인한다. `참고:` 줄은 건수에 들지 않지만 4-1 샘플 기준대로 판단한다.
 4. PNG를 직접 열어 아래를 눈으로 확인한다(도구가 못 보는 것). 걸리면 고치고 다시 render:
    - 4-1 기준(창 제목, 날짜·소수 형식, 빈 값, 긴 글 열만 왼쪽)
    - 샘플 값 정합(알람 문구 기준값 = 설정값 = 그래프 기준선, 추이 마지막 점 = 현재값, 집계 합)
