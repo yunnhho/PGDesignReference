@@ -20,6 +20,7 @@ namespace APC.UI.Controls
         {
             Dock = DockStyle.Fill;
             BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);
+            Font = ApcTheme.GetFont();   // 자식(헤더·카드·입력칸·이름표)이 어떤 창에 올라가도 테마 글꼴을 물려받게
             Header.Title = title;
             Header.Status = StatusKind.Run;
             Header.StatusText = "가동중";
@@ -38,11 +39,19 @@ namespace APC.UI.Controls
             {
                 Text = text,
                 AutoSize = true,
-                Font = ApcTheme.GetFont(FontStyle.Bold),
+                Font = ApcTheme.GetFont(),   // 입력 행 이름표는 보통 굵기(굵게는 묶음·구획 제목만)
                 ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text),
                 Margin = new Padding(0, S(8), S(6), 0),
                 BackColor = Color.Transparent,
             };
+        }
+
+        /// <summary>구획 제목(굵게, 예: "최근 알람 이력"). 입력칸 앞 이름표는 Caption(보통 굵기).</summary>
+        protected static Label SectionTitle(string text)
+        {
+            var l = Caption(text);
+            l.Font = ApcTheme.GetFont(FontStyle.Bold);
+            return l;
         }
 
         protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)

@@ -85,7 +85,7 @@ namespace APC.UI.Demo.Templates
 
             // Top 도킹은 나중에 Add한 것이 위 → 이력(Fill) 먼저, 그다음 아래 줄부터
             Body.Controls.Add(grid);
-            Body.Controls.Add(Row(Caption("최근 알람 이력")));
+            Body.Controls.Add(Row(SectionTitle("최근 알람 이력")));
             Body.Controls.Add(Columns(S(120), cards));
             Body.Controls.Add(Columns(S(90), tiles));
         }

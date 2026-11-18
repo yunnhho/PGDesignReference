@@ -11,7 +11,7 @@ namespace APC.UI.Tools
     /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [취소][확인] 순서, 전체 선택된 글자.
     /// APC.UI 내부(입력칸 속 TextBox, 표 스크롤바 등)는 들어가지 않는다. APC.UI 사본이 둘일 수 있어 형식은 이름으로 비교한다.
     /// </summary>
-    public static class LayoutLint
+    public static partial class LayoutLint
     {
         private const string ApcAssembly = "APC.UI";
         private const int TextPad = 8;   // 버튼·이름표 안쪽 여유(양쪽 합)
@@ -34,11 +34,15 @@ namespace APC.UI.Tools
         public static List<string> Inspect(Control root)
         {
             var issues = new List<string>();
-            Walk(root, root.GetType().Name, issues);
+            var theme = Theme.From(root);
+            Walk(root, root.GetType().Name, issues, theme);
+            bool dialog = IsDialog(root);
+            CheckFieldRows(root, dialog, issues);
+            if (dialog && theme != null) CheckFooter((Form)root, issues, theme);
             return issues;
         }
 
-        private static void Walk(Control c, string path, List<string> issues)
+        private static void Walk(Control c, string path, List<string> issues, Theme theme)
         {
             var shown = c.Controls.Cast<Control>().Where(x => x.Visible).ToList();
             foreach (var z in shown.Where(x => x.Width <= 0 || x.Height <= 0))
@@ -49,7 +53,8 @@ namespace APC.UI.Tools
             {
                 string p = path + " > " + Describe(child);
                 CheckOne(child, p, issues);
-                if (!IsApc(child) || Is(child, "ApcGroup")) Walk(child, p, issues);
+                CheckFont(child, p, issues, theme);
+                if (Enters(child)) Walk(child, p, issues, theme);
             }
         }
 
@@ -130,6 +135,8 @@ namespace APC.UI.Tools
                     else if (SameRow(a, b) && (a.Top != b.Top || a.Height != b.Height))
                         issues.Add(path + ": 같은 줄 " + Describe(a) + "(위 " + a.Top + ", 높이 " + a.Height + ")와(과) " + Describe(b) + "(위 " + b.Top + ", 높이 " + b.Height + ") 어긋남");
                     CheckOrder(a, b, path, issues);
+                    CheckBoldCaption(a, b, path, issues);
+                    CheckBoldCaption(b, a, path, issues);
                 }
         }
 

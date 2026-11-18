@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -84,6 +84,63 @@ namespace APC.UI.Checks
             using (var g = new ApcGrid())
                 Check(g.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter && g.ColumnHeadersDefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter, "grid: cells and headers centered by default");
             Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "취소", Width = 70 }); p.Controls.Add(new ApcButton { Text = "저장", Left = 80, Width = 70 }); }).Count == 0, "lint: clean row passes");
+            CheckDialogLintCatches();
+        }
+
+        private static void CheckDialogLintCatches()
+        {
+            int h = ApcTheme.Px(ApcLayout.FieldHeight);
+            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "A", Width = 60 }); p.Controls.Add(new Label { Text = "큰 글자", Font = new Font("Arial", 14f), AutoSize = false, Bounds = new Rectangle(0, 60, 200, 40) }); })
+                .Any(i => i.Contains("테마와 다른 글꼴")), "lint: off-theme font");
+            Check(Lint(p => { p.Controls.Add(Caption("모델명", 0, h, FontStyle.Bold)); p.Controls.Add(new ApcTextBox { Bounds = new Rectangle(110, 0, 150, h) }); })
+                .Any(i => i.Contains("이름표가 굵게")), "lint: bold field caption");
+            Check(Lint(p => { AddLintRow(p, 0, 120, h); AddLintRow(p, h + 12, 140, h); })
+                .Any(i => i.Contains("왼쪽 끝 어긋남")), "lint: misaligned field left edges");
+            Check(Lint(p => { AddLintRow(p, 0, 120, h); AddLintRow(p, h + 12, 120, h); AddLintRow(p, 2 * h + 32, 120, h); })
+                .Any(i => i.Contains("행 간격 다름")), "lint: uneven row gaps");
+            Check(LintDialog((f, cb) =>
+            {
+                int pad = ApcTheme.Px(16), bh = ApcTheme.Px(40), y = cb.Bottom - pad - bh;
+                AddLintRow(f, y - ApcTheme.Px(16) - h, pad + 120, h);
+                f.Controls.Add(new ApcButton { Text = "취소", Bounds = new Rectangle(cb.Right - pad - ApcTheme.Px(228), y, ApcTheme.Px(100), bh) });
+                f.Controls.Add(new ApcButton { Text = "저장", Bounds = new Rectangle(cb.Right - pad - ApcTheme.Px(120), y, ApcTheme.Px(120), bh) });
+            }).Any(i => i.Contains("하단 버튼 크기")), "lint: footer button size");
+            Check(LintDialog((f, cb) =>
+            {
+                int pad = ApcTheme.Px(16), bw = ApcTheme.Px(110), bh = ApcTheme.Px(40), y = cb.Bottom - pad - bh;
+                AddLintRow(f, cb.Top + pad, pad + 120, h);
+                f.Controls.Add(new ApcButton { Text = "취소", Bounds = new Rectangle(cb.Right - pad - bw * 2 - ApcTheme.Px(8), y, bw, bh) });
+                f.Controls.Add(new ApcButton { Text = "저장", Bounds = new Rectangle(cb.Right - pad - bw, y, bw, bh) });
+            }).Any(i => i.Contains("빈 공간")), "lint: empty space above footer");
+            using (var d = new FieldDialog())
+            {
+                ShowOffscreen(d);
+                var issues = LayoutLint.Inspect(d);
+                foreach (var i in issues) Console.WriteLine("      " + i);
+                Check(issues.Count == 0, "lint: helper dialog is clean");
+            }
+        }
+
+        private static Label Caption(string text, int y, int h, FontStyle style)
+        {
+            return new Label { Text = text, AutoSize = false, Font = ApcTheme.GetFont(style), Bounds = new Rectangle(0, y, 100, h) };
+        }
+
+        private static void AddLintRow(Control parent, int y, int fieldLeft, int h)
+        {
+            parent.Controls.Add(Caption("이름", y, h, FontStyle.Regular));
+            parent.Controls.Add(new ApcTextBox { Bounds = new Rectangle(fieldLeft, y, 150, h) });
+        }
+
+        private static List<string> LintDialog(Action<ApcForm, Rectangle> build)
+        {
+            using (var f = new ApcForm { Resizable = false, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000), ClientSize = new Size(ApcTheme.Px(460), ApcTheme.Px(300)) })
+            {
+                build(f, f.ContentBounds);
+                f.Show();
+                Application.DoEvents();
+                return LayoutLint.Inspect(f);
+            }
         }
 
         private static List<string> Lint(Action<Panel> build)

@@ -65,6 +65,7 @@ namespace APC.UI.Demo.Templates
         private static Label Value(string text)
         {
             var l = Caption(text);
+            l.Font = ApcTheme.GetFont(FontStyle.Bold);   // 값 강조(이름표 아님)
             l.Margin = new Padding(0, S(8), S(28), 0);
             return l;
         }
