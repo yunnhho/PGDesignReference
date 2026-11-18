@@ -14,6 +14,10 @@ quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "
 [ -s "$T/main.png" ] || fail render-output
 quiet "$TOOLS" render "$(cygpath -w "$T/app/bin/Debug/SmokeApp.exe")" MainView "$(cygpath -w "$T/app/bin/Debug/themes/샘플 고객")" "$(cygpath -w "$T/new-dir/main.png")" || fail render-creates-output-dir
 
+quiet "$MSBUILD" "$(cygpath -w "$T/app/SmokeApp.sln")" -v:m -nologo -p:PreferredUILang=en-US -p:PlatformTarget=x86 "-p:OutputPath=bin\x86\\" "-p:IntermediateOutputPath=obj\x86\\" || fail build-x86
+quiet ./src/APC.UI.Tools/bin/Debug-x86/APC.UI.Tools.exe render "$(cygpath -w "$T/app/bin/x86/SmokeApp.exe")" MainView "$(cygpath -w "$T/app/bin/x86/themes/샘플 고객")" "$(cygpath -w "$T/x86.png")" || fail render-x86
+[ -s "$T/x86.png" ] || fail render-x86-output
+
 tools/new-project.sh "$T/bad" 1bad x > /dev/null 2>&1 && fail reject-bad-name
 tools/new-project.sh "$T/app" SmokeApp x > /dev/null 2>&1 && fail reject-existing-csproj
 tools/new-project.sh "$T/dots" Dots ".." > /dev/null 2>&1 && fail reject-dot-customer

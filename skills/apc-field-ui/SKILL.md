@@ -5,7 +5,7 @@ description: Use when building a new APCSOFT field PC program screen in WinForms
 
 # APC 현장 UI 화면 만들기
 
-APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. 원본 저장소: `C:\00P_PGDesignReference` (이하 `$REPO`, Git Bash 경로 `/c/00P_PGDesignReference`).
+APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. 원본 저장소: `C:\00P_PGDesignReference` (이하 `$REPO`, Git Bash 경로 `/c/00P_PGDesignReference`. 다른 위치에 클론했으면 `tools/install-skill.sh`가 이 문서의 경로를 실제 위치로 바꿔 설치한다).
 결과물: 샘플 데이터가 들어간 **메인 화면 하나 + (필요하면) dialog** 껍데기와, 데이터 연결용 **인터페이스 자리**. 실제 PLC/DB/시리얼 연결 코드는 만들지 않는다.
 
 ## 1. 입력 확인
@@ -42,6 +42,10 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 4. 배치
 
+배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 배율 적용: 화면(`ApcTemplateView`)에서는 `S(px)`, dialog(`ApcForm`) 등 그 밖에서는 `ApcTheme.Px(px)`. 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
+
+### 4a. 메인 화면
+
 | 목적 | 출발 템플릿 |
 |---|---|
 | 모니터링: 라인 전체(설비 타일 + 현재값 카드 + 알람 이력, 타일 누르면 상세) | `EquipmentView` |
@@ -53,9 +57,15 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 - **템플릿 가져오기**: 템플릿은 데모 프로젝트의 `internal sealed` 클래스라 참조할 수 없다. 읽고 프로젝트에 새 파일로 옮겨 쓴다 — 네임스페이스를 프로젝트 것으로, 클래스 이름을 화면에 맞게, 코드에 박힌 샘플 값(배열·`Rows.Add` 반복)은 `SampleMainViewSource`로 옮기고 화면은 `IMainViewSource`에서 받는다. `Columns()`·`Row()`·`Caption()`·`Button()`·`S()`는 `ApcTemplateView`에 있으니 옮기지 않는다.
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
-- 배치는 생성자 코드로만 한다(디자이너 파일 없음). 크기는 배율 적용: 화면(`ApcTemplateView`)에서는 `S(px)`, dialog(`ApcForm`) 등 그 밖에서는 `ApcTheme.Px(px)`.
 - `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다. `MainForm.TitleText`도 화면 이름으로 바꾼다(기본값은 영문 프로젝트명).
-- dialog는 템플릿에서 출발한다(모두 `src/APC.UI.Demo/Templates/`, 갤러리 "dialog 템플릿"에서 열어 볼 수 있다):
+- **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
+- 카드·타일·판정판을 한 줄에: `ApcTemplateView`의 `Columns(S(높이), cells)`(같은 폭) 또는 `Columns(S(높이), cells, new[] { 50f, 25f, 25f })`(퍼센트 폭). 칸 간격·줄 간격은 헬퍼가 정한다.
+- `ApcGrid`는 사용자가 누르기 전엔 선택 행이 없다(`CurrentRow == null`). "선택한 행" 버튼은 null이면 아무것도 하지 않게 한다.
+
+### 4b. dialog
+
+- **dialog는 `ApcForm`을 상속한 별도 폼**이다(`ApcDialog`는 확인창만 띄우는 static 클래스라 상속할 수 없다). 생성자에서 `TitleText`, `Resizable = false`, `MinimizeBox = false`, `ShowInTaskbar = false`, `StartPosition = FormStartPosition.CenterParent`, `ClientSize`를 정하고, 내용은 `ContentBounds.Top` 아래에 둔다. 메인에서 `dlg.ShowDialog(FindForm())`.
+- 템플릿에서 출발한다(모두 `src/APC.UI.Demo/Templates/`, 갤러리 "dialog 템플릿"에서 열어 볼 수 있다). 메인 화면과 같은 방법으로 옮겨 쓴다:
 
 | dialog 유형 | 템플릿 |
 |---|---|
@@ -64,7 +74,11 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 관리자 비밀번호 확인(설정 진입 전 등) | `AdminPasswordDialog` |
 | 칸·슬롯별 LOT 입력(표에 바로 스캔, 칸 수 가변, 빈 칸 Alert) | `LotInputDialog` |
 | 통신·장비 설정(블록별 `ApcGroup` 묶음 + 공통 설정 + 비밀번호 변경) | `SettingsDialog` |
-- **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
+
+- dialog 아래 버튼은 **[취소][확인]** 순서(확정 버튼이 오른쪽 끝, `ApcDialog`와 같음). 입력칸과 버튼을 한 줄에 둘 때는 높이를 같게(`ApcTextBox.BaseHeight`)·위 Margin 0으로 맞춘다.
+- `Columns()`·`Row()`·`S()`는 `ApcTemplateView` 것이라 dialog에서는 쓸 수 없다. 이름표+입력칸 행은 `RecipeDialog`의 `AddRow`처럼 직접 만든다.
+
+### 4c. 컨트롤
 
 | 화면 요소 | 컨트롤 |
 |---|---|
@@ -81,12 +95,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 입력 표(칸에 바로 입력·스캔) | `ApcGrid { ReadOnly = false, ClearInitialSelection = false }` + 열별 `ReadOnly`(읽기 전용 열은 자동 회색) |
 
 - **표준 컨트롤 금지**: `Button`/`TextBox`/`ComboBox`/`NumericUpDown`/`DateTimePicker`/`DataGridView`/`Form`과 `Control`을 상속해 직접 그린 카드·타일·그래프를 만들지 않는다. 위 표의 Apc 컨트롤을 쓴다. 표준으로 쓰는 것은 `Label`과 배치용 `Panel`/`FlowLayoutPanel`/`TableLayoutPanel`뿐. 표에 없는 요소가 꼭 필요하면 만들지 말고 사용자에게 알린다(라이브러리에 추가할 후보).
-- 캡처가 있으면 원본의 정보 배치(무엇이 어디)는 유지하고 모양만 APC.UI로 바꾼다.
-- **dialog는 `ApcForm`을 상속한 별도 폼**이다(`ApcDialog`는 확인창만 띄우는 static 클래스라 상속할 수 없다). 생성자에서 `TitleText`, `Resizable = false`, `MinimizeBox = false`, `ShowInTaskbar = false`, `StartPosition = FormStartPosition.CenterParent`, `ClientSize`를 정하고, 내용은 `ContentBounds.Top` 아래에 둔다. 메인에서 `dlg.ShowDialog(FindForm())`.
-- dialog 아래 버튼은 **[취소][확인]** 순서(확정 버튼이 오른쪽 끝, `ApcDialog`와 같음). 입력칸과 버튼을 한 줄에 둘 때는 높이를 같게(`ApcTextBox.BaseHeight`)·위 Margin 0으로 맞춘다 — `Row()`는 자동으로 맞춘다.
 - 확인: 되돌릴 수 없는 동작은 `ApcDialog.Confirm(this, "...")`(빨간 확인), 저장처럼 위험하지 않은 것은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`. 입력 오류 안내는 `ApcDialog.Alert(this, "...")`. 메인 화면의 이상 알림은 `Alarm.Push("...")`(알람바).
-- 카드·타일·판정판을 한 줄에: `ApcTemplateView`의 `Columns(S(높이), cells)`(같은 폭) 또는 `Columns(S(높이), cells, new[] { 50f, 25f, 25f })`(퍼센트 폭). 칸 간격·줄 간격은 헬퍼가 정한다. dialog에서는 쓸 수 없다(`ApcForm`).
-- `ApcGrid`는 사용자가 누르기 전엔 선택 행이 없다(`CurrentRow == null`). "선택한 행" 버튼은 null이면 아무것도 하지 않게 한다.
 - 상태 표시는 `StatusKind`(Run/Warn/Alarm/Stop/Info) + `ApcLamp`/`ApcLampColumn`. 색은 테마가 정한다.
 
 ## 4-1. 디테일 기준 (사용자 확정, 요구서가 다르게 정하면 요구서)
@@ -114,7 +123,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 7. 완료 확인
 
-1. MSBuild로 빌드: `"/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe" <sln> -v:m -clp:Summary -p:PreferredUILang=en-US` (영어로 출력해 한글 CP949 깨짐을 피한다) — 마지막 요약 `0 Warning(s)`, `0 Error(s)`를 확인한다. 경고도 고친다.
+1. MSBuild로 빌드: `. /c/00P_PGDesignReference/tools/env.sh && "$MSBUILD" <sln> -v:m -clp:Summary -p:PreferredUILang=en-US` (`env.sh`가 설치된 Visual Studio/Build Tools에서 MSBuild를 찾는다. 못 찾으면 그 메시지를 사용자에게 전한다) (영어로 출력해 한글 CP949 깨짐을 피한다) — 마지막 요약 `0 Warning(s)`, `0 Error(s)`를 확인한다. 경고도 고친다.
 2. 메인 폼과 각 dialog를 PNG로(형식 이름은 네임스페이스 없이 클래스 이름만, 예: `MainForm`, `RecipeDialog`):
    `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe render <bin/Debug/앱.exe> MainForm <bin/Debug/themes/고객사> <out.png>` (Windows 경로는 `cygpath -w`)
    `--size`는 생략한다: 크기 고정 dialog(`Resizable = false`)는 자기 크기, 메인 폼·화면은 1920×1080으로 그린다. 출력 폴더는 없으면 만든다.
@@ -128,7 +137,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
    - 큰 빈 공간·한쪽으로 쏠린 배치가 없는가(dialog는 `ClientSize`를 내용에 맞춘다)
 5. 사용자에게 PNG 경로와 함께 보여 주고, 마지막 render의 `점검 0건`·빌드 경고 0을 보고한다.
 
-render 제한: 도구는 64비트로 돈다. `PlatformTarget`이 x86인 앱이나 생성자에서 32비트 네이티브 DLL을 부르는 화면은 "어셈블리를 읽을 수 없습니다"로 실패한다. 그때는 빌드 성공까지만 확인하고 render를 못 한 이유를 사용자에게 말한다.
+x86 앱: 위 도구는 64비트로 돌아서 `PlatformTarget`이 x86인 앱이나 생성자에서 32비트 네이티브 DLL을 부르는 화면은 "어셈블리를 읽을 수 없습니다"로 실패한다. 그때는 같은 인자로 32비트 도구 `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug-x86/APC.UI.Tools.exe`를 쓴다(`build.sh`가 함께 만든다). 32비트 도구로도 실패하면(네이티브 DLL·장비가 이 PC에 없음 등) 빌드 성공까지만 확인하고 render를 못 한 이유를 사용자에게 말한다.
 
 ## 하지 않는 것
 
