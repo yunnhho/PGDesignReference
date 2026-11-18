@@ -5,7 +5,7 @@ description: Use when building a new APCSOFT field PC program screen in WinForms
 
 # APC 현장 UI 화면 만들기
 
-APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. 원본 저장소: `C:\00P_PGDesignReference` (이하 `$REPO`, Git Bash 경로 `/c/00P_PGDesignReference`. 다른 위치에 클론했으면 `tools/install-skill.sh`가 이 문서의 경로를 실제 위치로 바꿔 설치한다).
+APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. 원본 저장소: `C:\apc-field-ui` (이하 `$REPO`, Git Bash 경로 `/c/apc-field-ui`. 다른 위치에 클론했으면 `tools/install-skill.sh`가 이 문서의 경로를 실제 위치로 바꿔 설치한다).
 결과물: 샘플 데이터가 들어간 **메인 화면 하나 + (필요하면) dialog** 껍데기와, 데이터 연결용 **인터페이스 자리**. 실제 PLC/DB/시리얼 연결 코드는 만들지 않는다.
 
 ## 1. 입력 확인
@@ -20,11 +20,11 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 2. 프로젝트 판별과 준비
 
-먼저 저장소 도구가 빌드돼 있어야 한다: `$REPO/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe`가 없으면 `bash /c/00P_PGDesignReference/build.sh`를 실행한다(`ALL PASSED` 확인).
+먼저 저장소 도구가 빌드돼 있어야 한다: `$REPO/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe`가 없으면 `bash /c/apc-field-ui/build.sh`를 실행한다(`ALL PASSED` 확인).
 
 | 작업 폴더 상태 | 할 일 |
 |---|---|
-| csproj 없음 | `bash /c/00P_PGDesignReference/tools/new-project.sh <폴더> <프로젝트명> <고객사> [--framework v4.x]` (기본 v4.0, v4.0~v4.8.1. 폴더가 없으면 스크립트가 만든다) |
+| csproj 없음 | `bash /c/apc-field-ui/tools/new-project.sh <폴더> <프로젝트명> <고객사> [--framework v4.x]` (기본 v4.0, v4.0~v4.8.1. 폴더가 없으면 스크립트가 만든다) |
 | 구형 csproj, `TargetFrameworkVersion` v4.x, WinForms | 같은 명령에 `--into-existing` (dll·테마·참조만 추가, 재실행 시 dll만 교체) |
 | SDK 형식(`<Project Sdk=`), net6/8, WPF, 웹 | **중단.** APC.UI는 .NET Framework 4.x WinForms 전용이라고 알린다 |
 
@@ -129,8 +129,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 ## 5. 새 그림이 필요할 때만
 
 1. 프로젝트의 `assets-src/`에 SVG를 만든다. 이름 규칙 `{btn|lamp|win|icon|logo}_{이름}_{normal|hover|pressed|disabled}.svg`(램프·로고는 상태 없음), `<svg width="..">` 필수. 기존 SVG(`$REPO/assets-src/`)를 본떠 그린다.
-2. `$REPO/tools/node_modules`가 없으면 먼저 `cd /c/00P_PGDesignReference/tools && npm install`(한 번만). 그다음
-   `node /c/00P_PGDesignReference/tools/render-assets.mjs --out <프로젝트>/themes/<고객사>/assets --override <프로젝트>/assets-src`
+2. `$REPO/tools/node_modules`가 없으면 먼저 `cd /c/apc-field-ui/tools && npm install`(한 번만). 그다음
+   `node /c/apc-field-ui/tools/render-assets.mjs --out <프로젝트>/themes/<고객사>/assets --override <프로젝트>/assets-src`
 3. 기존 이름을 대체한 그림은 컨트롤이 자동으로 쓴다. 새 이름은 `ApcTheme.GetImage("icon_xxx_normal")`로 쓴다.
 
 ## 6. 데이터 자리
@@ -139,11 +139,11 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 7. 완료 확인
 
-1. MSBuild로 빌드: `. /c/00P_PGDesignReference/tools/env.sh && "$MSBUILD" <sln> -v:m -nologo -noconlog "-flp:logfile=build.log;verbosity=minimal;encoding=utf-8;summary"; tail -8 build.log` (`env.sh`가 설치된 Visual Studio/Build Tools에서 MSBuild를 찾는다. 못 찾으면 그 메시지를 사용자에게 전한다) (한글 VS의 MSBuild 콘솔 출력은 CP949와 UTF-8이 섞여 깨진다. `PreferredUILang`·`iconv`로는 안 된다 → UTF-8 로그 파일로 읽는다) — 마지막 요약 `경고 0개`·`오류 0개`(영문 VS면 `0 Warning(s)`·`0 Error(s)`)를 확인한다. 경고도 고친다.
+1. MSBuild로 빌드: `. /c/apc-field-ui/tools/env.sh && "$MSBUILD" <sln> -v:m -nologo -noconlog "-flp:logfile=build.log;verbosity=minimal;encoding=utf-8;summary"; tail -8 build.log` (`env.sh`가 설치된 Visual Studio/Build Tools에서 MSBuild를 찾는다. 못 찾으면 그 메시지를 사용자에게 전한다) (한글 VS의 MSBuild 콘솔 출력은 CP949와 UTF-8이 섞여 깨진다. `PreferredUILang`·`iconv`로는 안 된다 → UTF-8 로그 파일로 읽는다) — 마지막 요약 `경고 0개`·`오류 0개`(영문 VS면 `0 Warning(s)`·`0 Error(s)`)를 확인한다. 경고도 고친다.
 2. 메인 폼과 각 dialog를 PNG로(형식 이름은 네임스페이스 없이 클래스 이름만, 예: `MainForm`, `RecipeDialog`):
-   `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe render <bin/Debug/앱.exe> MainForm <bin/Debug/themes/고객사> <out.png>` (Windows 경로는 `cygpath -w`)
+   `/c/apc-field-ui/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe render <bin/Debug/앱.exe> MainForm <bin/Debug/themes/고객사> <out.png>` (Windows 경로는 `cygpath -w`)
    `--size`는 생략한다: 크기 고정 dialog(`Resizable = false`)는 자기 크기, 메인 폼·화면은 1920×1080으로 그린다. 출력 폴더는 없으면 만든다.
-   예: `T=/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe; $T render "$(cygpath -w bin/Debug/App.exe)" RecipeDialog "$(cygpath -w "bin/Debug/themes/고객사")" "$(cygpath -w out/RecipeDialog.png)"`
+   예: `T=/c/apc-field-ui/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe; $T render "$(cygpath -w bin/Debug/App.exe)" RecipeDialog "$(cygpath -w "bin/Debug/themes/고객사")" "$(cygpath -w out/RecipeDialog.png)"`
    캡처를 받았다면 `--compare <캡처.png>` → `<out>.compare.png`
 3. **render 점검 0건까지 고친다.** render는 배치를 검사해 `점검: <컨트롤 경로>: <문제>`와 마지막 줄 `점검 N건`을 출력한다 — 글자 잘림, 타일·카드·헤더·알람 띠 글자의 말줄임(…), 부모 밖 넘침, 형제 겹침, 같은 줄 입력칸·버튼 위/높이 어긋남, 표준 컨트롤·직접 그린 `Control`, 표 스크롤바, 짧은 값 열이 표 폭 절반 넘게 차지, [확인][취소] 순서, 글자 전체 선택된 채 표시(숫자칸·날짜칸 안쪽 포함), 테마와 다른 글꼴, 입력 행 이름표 굵게, 입력칸 왼쪽 끝 어긋남, 입력 행 간격 다름, dialog 하단 버튼 크기·하단 여백·버튼 위 빈 공간. 고치고 다시 render해서 `점검 0건`을 확인한다. `참고:` 줄은 건수에 들지 않지만 4-1 샘플 기준대로 판단한다.
 4. PNG를 직접 열어 아래를 눈으로 확인한다(도구가 못 보는 것). 걸리면 고치고 다시 render:
@@ -156,7 +156,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
    - 큰 빈 공간·한쪽으로 쏠린 배치가 없는가(dialog는 `ClientSize`를 내용에 맞춘다)
 5. 사용자에게 PNG 경로와 함께 보여 주고, 마지막 render의 `점검 0건`·빌드 경고 0을 보고한다.
 
-x86 앱: 위 도구는 64비트로 돌아서 `PlatformTarget`이 x86인 앱이나 생성자에서 32비트 네이티브 DLL을 부르는 화면은 "어셈블리를 읽을 수 없습니다"로 실패한다. 그때는 같은 인자로 32비트 도구 `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug-x86/APC.UI.Tools.exe`를 쓴다(`build.sh`가 함께 만든다). 32비트 도구로도 실패하면(네이티브 DLL·장비가 이 PC에 없음 등) 빌드 성공까지만 확인하고 render를 못 한 이유를 사용자에게 말한다.
+x86 앱: 위 도구는 64비트로 돌아서 `PlatformTarget`이 x86인 앱이나 생성자에서 32비트 네이티브 DLL을 부르는 화면은 "어셈블리를 읽을 수 없습니다"로 실패한다. 그때는 같은 인자로 32비트 도구 `/c/apc-field-ui/src/APC.UI.Tools/bin/Debug-x86/APC.UI.Tools.exe`를 쓴다(`build.sh`가 함께 만든다). 32비트 도구로도 실패하면(네이티브 DLL·장비가 이 PC에 없음 등) 빌드 성공까지만 확인하고 render를 못 한 이유를 사용자에게 말한다.
 
 ## 하지 않는 것
 
