@@ -78,7 +78,10 @@ namespace APC.UI.Tools
                 var lefts = rows.Select(r => r.Value.Left).ToList();
                 if (!dialog && lefts.Max() - lefts.Min() > Tol)
                     issues.Add(Describe(parent) + ": 입력칸 왼쪽 끝 어긋남(" + string.Join(", ", lefts) + ") — 이름표 열 폭을 하나로");
-                var gaps = Enumerable.Range(1, rows.Count - 1).Select(i => rows[i].Value.Top - rows[i - 1].Value.Bottom).ToList();
+                // 사이에 다른 요소(묶음·표·구획 제목)가 낀 간격은 행 간격이 아니다
+                var gaps = Enumerable.Range(1, rows.Count - 1)
+                    .Where(i => !Between(parent, rows, rows[i - 1].Value.Bottom, rows[i].Value.Top))
+                    .Select(i => rows[i].Value.Top - rows[i - 1].Value.Bottom).ToList();
                 if (gaps.Count >= 2 && gaps.Max() - gaps.Min() > Tol)
                     issues.Add(Describe(parent) + ": 입력 행 간격 다름(" + string.Join(", ", gaps) + "px) — 행 간격 하나로(ApcLayout.RowGap)");
                 foreach (var r in rows)
@@ -87,6 +90,12 @@ namespace APC.UI.Tools
             if (dialog && all.Count > 1 && all.Max(a => a.Value) - all.Min(a => a.Value) > Tol)
                 issues.Add(Describe(root) + ": 입력칸 왼쪽 끝 어긋남(" + string.Join(", ", all.Select(a => Describe(a.Key) + " " + a.Value))
                            + ") — dialog 전체 이름표 열 하나(AddFieldRow)");
+        }
+
+        private static bool Between(Control parent, List<KeyValuePair<Label, Control>> rows, int top, int bottom)
+        {
+            return parent.Controls.Cast<Control>().Any(c => c.Visible && c.Height > 0 && c.Top >= top && c.Bottom <= bottom
+                                                            && rows.All(r => r.Key != c && r.Value != c));
         }
 
         private static bool IsDialog(Control root)

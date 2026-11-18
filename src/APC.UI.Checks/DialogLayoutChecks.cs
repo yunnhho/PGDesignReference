@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using APC.UI.Controls;
 using APC.UI.Theming;
+using APC.UI.Tools;
 
 namespace APC.UI.Checks
 {
@@ -19,6 +20,47 @@ namespace APC.UI.Checks
             CheckFillDialog();
             Check(Throws(() => new FillDialog(0, false)), "dialog: fill without height throws");
             Check(Throws(() => new FillDialog(400, true)), "dialog: second fill throws");
+            CheckReviewFixes();
+        }
+
+        private static void CheckReviewFixes()
+        {
+            // 확정 버튼 하나(DialogResult 없음)는 Esc용 CancelButton이 되면 안 된다 — 누르면 Click 처리 전에 Cancel로 닫힌다
+            using (var d = new SingleButtonDialog())
+                Check(d.Save.DialogResult == DialogResult.None && d.CancelButton == null, "dialog: SetFooter(null, confirm) keeps confirm's DialogResult");
+            // 행 a, b → 묶음 → 행 c: 묶음을 사이에 둔 간격은 행 간격 비교에서 뺀다
+            using (var d = new MixedDialog())
+            {
+                ShowOffscreen(d);
+                var issues = LayoutLint.Inspect(d);
+                foreach (var i in issues) Console.WriteLine("      " + i);
+                Check(issues.Count == 0, "lint: rows split by a group are not uneven");
+            }
+        }
+
+        private sealed class SingleButtonDialog : ApcForm
+        {
+            public readonly ApcButton Save = new ApcButton { Text = "저장", Variant = ApcButtonVariant.Primary };
+
+            public SingleButtonDialog()
+            {
+                SetupDialog("t", 400);
+                AddFieldRow("이름", new ApcTextBox());
+                SetFooter(null, Save);
+            }
+        }
+
+        private sealed class MixedDialog : ApcForm
+        {
+            public MixedDialog()
+            {
+                SetupDialog("t", 460);
+                AddFieldRow("가", new ApcTextBox());
+                AddFieldRow("나", new ApcTextBox());
+                AddFieldRow(AddGroup("묶음"), "다", new ApcTextBox());
+                AddFieldRow("라", new ApcTextBox());
+                SetFooter(new ApcButton { Text = "취소" }, new ApcButton { Text = "저장", Variant = ApcButtonVariant.Primary });
+            }
         }
 
         private static void CheckFieldDialog()
@@ -95,7 +137,7 @@ namespace APC.UI.Checks
         {
             public readonly ApcTrendChart Chart = new ApcTrendChart();
             public readonly ApcHeaderBar Head = new ApcHeaderBar { Title = "h" };
-            public readonly ApcButton CloseButton = new ApcButton { Text = "닫기" };
+            public readonly ApcButton CloseButton = new ApcButton { Text = "닫기", DialogResult = DialogResult.OK };
 
             public FillDialog(int height, bool twoFills)
             {

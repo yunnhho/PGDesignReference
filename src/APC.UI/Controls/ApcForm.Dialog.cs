@@ -99,7 +99,10 @@ namespace APC.UI.Controls
             _footerConfirm = confirm;
             _footerLeft = left ?? new ApcButton[0];
             foreach (var b in _footerLeft.Concat(new[] { cancel, confirm }).Where(b => b != null)) Controls.Add(b);
-            CancelButton = cancel ?? confirm;
+            // CancelButton으로 지정하면 WinForms가 DialogResult 없는 버튼에 Cancel을 넣어 Click 처리 전에 닫힌다
+            // → 확정 버튼은 DialogResult가 이미 있을 때(보기용 닫기 = OK)만 Esc에 묶는다.
+            if (cancel != null) CancelButton = cancel;
+            else if (confirm.DialogResult != DialogResult.None) CancelButton = confirm;
         }
 
         private readonly HashSet<Control> _sectionTitles = new HashSet<Control>();
