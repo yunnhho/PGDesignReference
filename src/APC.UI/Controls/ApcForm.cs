@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using APC.UI.Drawing;
 using APC.UI.Theming;
@@ -64,7 +65,7 @@ namespace APC.UI.Controls
         /// <summary>가장자리 리사이즈 감지 폭(px).</summary>
         public int ResizeGrip { get { return (int)(BaseResizeGrip * ApcTheme.Scale); } }
 
-        /// <summary>타이틀바·테두리(리사이즈 그립 포함)를 뺀 내용 영역(클라이언트 좌표) = Padding 안쪽.</summary>
+        /// <summary>타이틀바·1px 테두리를 뺀 내용 영역(클라이언트 좌표) = Padding 안쪽.</summary>
         public Rectangle ContentBounds
         {
             get
@@ -244,20 +245,70 @@ namespace APC.UI.Controls
             MaximizedBounds = new Rectangle(wa.X - screen.Bounds.X, wa.Y - screen.Bounds.Y, wa.Width, wa.Height);
         }
 
-        /// <summary>
-        /// 리사이즈 가능하면 Padding을 그립 폭만큼 잡는다. Dock=Fill 자식이 가장자리를 덮으면
-        /// WM_NCHITTEST가 자식에게 가서 리사이즈가 1px 테두리에서만 된다.
-        /// </summary>
+        /// <summary>내용은 1px 테두리 안을 꽉 채운다. 가장자리 리사이즈는 자식 위에서도 EdgeResizeFilter가 처리한다.</summary>
         private void UpdatePadding()
         {
-            int edge = _resizable && WindowState == FormWindowState.Normal ? Math.Max(1, ResizeGrip) : 1;
-            Padding = new Padding(edge, TitleBarHeight + 1, edge, edge);
+            Padding = new Padding(1, TitleBarHeight + 1, 1, 1);
         }
 
-        protected override void OnResize(EventArgs e)
+        /// <summary>자식 컨트롤 좌표의 점이 창 가장자리 리사이즈 영역이면 HT 코드, 아니면 HTCLIENT.</summary>
+        internal int EdgeHit(Control child, Point childPoint)
         {
-            UpdatePadding();   // 최대화 시 그립 여백 제거
-            base.OnResize(e);
+            if (!Resizable || WindowState != FormWindowState.Normal) return HTCLIENT;
+            int hit = HitTest(PointToClient(child.PointToScreen(childPoint)));
+            return hit == HTCAPTION ? HTCLIENT : hit;
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            if (_edgeFilter == null) { _edgeFilter = new EdgeResizeFilter(this); Application.AddMessageFilter(_edgeFilter); }
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            if (_edgeFilter != null) { Application.RemoveMessageFilter(_edgeFilter); _edgeFilter = null; }
+            base.OnHandleDestroyed(e);
+        }
+
+        private EdgeResizeFilter _edgeFilter;
+
+        /// <summary>
+        /// Dock=Fill 자식이 가장자리를 덮으면 마우스 메시지가 자식에게 간다. 이 창의 자식이 받는 마우스 이동·누름 중
+        /// 가장자리 그립 안의 것을 가로채 커서를 바꾸고 창 리사이즈를 시작한다(여백 없이 꽉 채우기 위해).
+        /// </summary>
+        private sealed class EdgeResizeFilter : IMessageFilter
+        {
+            private const int WM_MOUSEMOVE = 0x200, WM_LBUTTONDOWN = 0x201, WM_NCLBUTTONDOWN = 0xA1;
+            private readonly ApcForm _form;
+
+            internal EdgeResizeFilter(ApcForm form) { _form = form; }
+
+            public bool PreFilterMessage(ref Message m)
+            {
+                if (m.Msg != WM_MOUSEMOVE && m.Msg != WM_LBUTTONDOWN) return false;
+                if (!_form.IsHandleCreated || m.HWnd == _form.Handle) return false;   // 창 자체는 WM_NCHITTEST로 처리
+                var child = Control.FromChildHandle(m.HWnd);
+                if (child == null || child.FindForm() != _form) return false;
+                var p = new Point(unchecked((short)(long)m.LParam), unchecked((short)((long)m.LParam >> 16)));
+                int hit = _form.EdgeHit(child, p);
+                if (hit == HTCLIENT) return false;
+                if (m.Msg == WM_MOUSEMOVE) { Cursor.Current = CursorFor(hit); return false; }
+                ReleaseCapture();
+                SendMessage(_form.Handle, WM_NCLBUTTONDOWN, (IntPtr)hit, IntPtr.Zero);
+                return true;
+            }
+
+            private static Cursor CursorFor(int hit)
+            {
+                if (hit == HTLEFT || hit == HTRIGHT) return Cursors.SizeWE;
+                if (hit == HTTOP || hit == HTBOTTOM) return Cursors.SizeNS;
+                if (hit == HTTOPLEFT || hit == HTBOTTOMRIGHT) return Cursors.SizeNWSE;
+                return Cursors.SizeNESW;
+            }
+
+            [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+            [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
         }
 
         private void ApplyThemeFont()

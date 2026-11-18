@@ -1,4 +1,4 @@
-# APC.UI API (v1.7.2.0)
+# APC.UI API (v1.7.3.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -72,7 +72,7 @@
 
 테두리 없는 APCSOFT 창. 타이틀바(로고·제목·최소화·닫기 이미지 버튼), 드래그 이동, 더블클릭 최대화, 가장자리 리사이즈. 최대화해도 작업표시줄을 가리지 않는다.
 - `ApcForm()`
-- `Rectangle ContentBounds { get; }` — 타이틀바·테두리(리사이즈 그립 포함)를 뺀 내용 영역(클라이언트 좌표) = Padding 안쪽.
+- `Rectangle ContentBounds { get; }` — 타이틀바·1px 테두리를 뺀 내용 영역(클라이언트 좌표) = Padding 안쪽.
 - `bool Resizable { get; set; }`
 - `int ResizeGrip { get; }` — 가장자리 리사이즈 감지 폭(px).
 - `int TitleBarHeight { get; }`
