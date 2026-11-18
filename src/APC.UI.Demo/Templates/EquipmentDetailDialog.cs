@@ -28,7 +28,9 @@ namespace APC.UI.Demo.Templates
 
             var head = new ApcHeaderBar { Dock = DockStyle.Top, Title = name, Status = status, StatusText = statusText };
 
-            var grid = new ApcGrid { Dock = DockStyle.Top, Height = ApcTheme.Px(150), ReadOnly = true };
+            // 표 높이 = 머리줄 + 센서 수만큼(빈 줄 없이). 남는 높이는 추이 그래프(Fill)가 쓴다.
+            int gridH = (int)Math.Round(ApcTheme.MinHeight * 1.15) + ApcTheme.MinHeight * sensors.Length + 2;
+            var grid = new ApcGrid { Dock = DockStyle.Top, Height = gridH, ReadOnly = true };
             grid.Columns.Add(new ApcLampColumn());
             grid.Columns.Add("name", "센서");
             grid.Columns.Add("value", "현재값");

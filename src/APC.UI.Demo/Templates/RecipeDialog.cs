@@ -28,7 +28,7 @@ namespace APC.UI.Demo.Templates
             MinimizeBox = false;
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
-            ClientSize = new Size(ApcTheme.Px(460), ApcTheme.Px(470));
+            ClientSize = new Size(ApcTheme.Px(460), ApcTheme.Px(410));   // 마지막 입력 줄 아래 버튼까지 빈 공간 없이
 
             _name.Text = model;
             _loadMax.Value = loadMax; _loadMin.Value = loadMin;

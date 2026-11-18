@@ -8,6 +8,7 @@ namespace APC.UI.Demo.Templates
     /// <summary>실적 입력: 스캔 → 그리드 행 추가 → F9 저장. 행 삭제는 확인창.</summary>
     internal sealed class ProductionView : ApcTemplateView
     {
+        private const int SampleRows = 31;
         private const string LotPrefix = "LOT-";
 
         private readonly ApcScanBox _scan = new ApcScanBox();
@@ -29,6 +30,10 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("qty", "수량");
             _grid.Columns.Add("time", "스캔 시각");
             _grid.Columns["item"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 샘플: 미저장(Warn) 몇 건 + 저장된(Run) 실적을 표 높이만큼. 실제로는 데이터 인터페이스가 준다.
+            var at = new DateTime(2026, 11, 18, 11, 40, 0);
+            for (int i = 0; i < SampleRows; i++, at = at.AddMinutes(-4))
+                _grid.Rows.Add(i < 2 ? StatusKind.Warn : StatusKind.Run, LotPrefix + "241118-" + (260 - i).ToString("000"), "하우징 A-120", 120, at.ToString("HH:mm:ss"));
 
             var hint = Caption("바코드를 스캔하세요 (포커스 위치와 무관). 직접 입력 후 Enter도 가능");
             hint.Font = ApcTheme.GetFont();

@@ -24,6 +24,9 @@ namespace APC.UI.Controls
             BorderStyle = BorderStyle.FixedSingle;
             CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            // 현장 표 기준: 전부 가운데. 긴 글(알람 문구·비고) 열만 그 열에서 MiddleLeft로.
+            DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             ApcTheme.Changed += OnThemeChanged;
             ApplyTheme();
         }

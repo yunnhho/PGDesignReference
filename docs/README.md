@@ -8,7 +8,7 @@ WinForms(.NET Framework 4.0~4.8) 현장 프로그램용 컨트롤·테마·이�
 
 도구(`src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe`):
 - `api <dll> <out.md>` — public API 요약. `build.sh`가 `docs/api.md`를 매번 다시 만든다.
-- `render <exe|dll> <형식명> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]` — 화면을 PNG로, 원본 캡처와 나란히 비교본도.
+- `render <exe|dll> <형식명> <themeDir> <out.png> [--size WxH] [--compare <원본.png>]` — 화면을 PNG로(크기 생략 시 크기 고정 dialog는 자기 크기, 그 밖은 1920×1080), 원본 캡처와 나란히 비교본도. 배치 점검(글자 잘림·넘침·겹침·줄 어긋남·표준 컨트롤·표 스크롤바·버튼 순서)을 `점검 N건`으로 출력.
 - `attach <csproj> [--check]` — 기존 csproj에 APC.UI 참조와 테마 출력 복사 추가(원래 서식·인코딩 유지). `--check`는 연결 가능 여부만 검사.
 
 Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/install-skill.sh`로 `~/.claude/skills/`에 설치하면(저장소 경로 자동 반영) 다른 폴더에서 "현장 PC 화면 만들어줘"류 요청에 이 저장소 도구를 쓴다. 스킬을 고치면 다시 설치한다.

@@ -24,8 +24,9 @@ namespace APC.UI.Demo.Templates
         private readonly ApcValueCard _ng = Card("NG", "EA", "");
         private readonly ApcValueCard _rate = Card("불량률", "%", "NG / 생산");
         private readonly ApcGrid _grid = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = true };
+        private const int SampleHistoryRows = 19;
         private readonly Random _sample = new Random(7);
-        private int _okCount = 13, _ngCount = 3;
+        private int _okCount = 405, _ngCount = 7;
 
         public JudgeView() : base("베어링 압입 판정 · 압입기 01")
         {
@@ -45,9 +46,16 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("disp", "최종 변위(mm)");
             _grid.Columns.Add("result", "판정");
             _grid.Columns["serial"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Rows.Add(StatusKind.Run, "BP2411045", "10:15:00", "10.7", "5.03", "OK");
-            _grid.Rows.Add(StatusKind.Alarm, "BP2411044", "10:12:00", "12.6", "5.01", "NG · 하중 상한");
-            _grid.Rows.Add(StatusKind.Run, "BP2411043", "10:09:00", "10.2", "4.98", "OK");
+            // 샘플 이력: 표 높이만큼, 금일 집계(OK 405 · NG 7)를 넘지 않게. 실제로는 데이터 인터페이스가 준다.
+            var at = new DateTime(2026, 11, 18, 10, 15, 0);
+            for (int i = 0; i < SampleHistoryRows; i++, at = at.AddSeconds(-50))
+            {
+                bool ng = i % 9 == 1;
+                double load = ng ? 12.6 : 10.0 + (i * 7 % 10) / 10.0;
+                double disp = 4.95 + (i * 3 % 10) / 100.0;
+                _grid.Rows.Add(ng ? StatusKind.Alarm : StatusKind.Run, "BP" + (2411045 - i), at.ToString("HH:mm:ss"),
+                    load.ToString("0.0"), disp.ToString("0.00"), ng ? "NG · 하중 상한" : "OK");
+            }
 
             var recipe = Button("레시피 편집", ApcButtonVariant.Normal, 130);
             recipe.Click += (s, e) => EditRecipe();
@@ -117,17 +125,6 @@ namespace APC.UI.Demo.Templates
         private static ApcValueCard Card(string title, string unit, string footer)
         {
             return new ApcValueCard { Title = title, Unit = unit, Footer = footer, Dock = DockStyle.Fill, Margin = new Padding(0, 0, S(12), 0) };
-        }
-
-        /// <summary>한 줄에 퍼센트 폭으로 나란히(카드·판정판). 줄 아래 간격은 Padding.Bottom.</summary>
-        private static TableLayoutPanel Columns(int height, Control[] cells, float[] percents)
-        {
-            var t = new TableLayoutPanel { Dock = DockStyle.Top, Height = height + S(12), ColumnCount = cells.Length, RowCount = 1, Padding = new Padding(0, 0, 0, S(12)) };
-            foreach (var p in percents) t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, p));
-            t.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-            for (int i = 0; i < cells.Length; i++) t.Controls.Add(cells[i], i, 0);
-            cells[cells.Length - 1].Margin = Padding.Empty;   // 마지막 칸은 오른쪽 여백 없이 끝선 맞춤
-            return t;
         }
     }
 }

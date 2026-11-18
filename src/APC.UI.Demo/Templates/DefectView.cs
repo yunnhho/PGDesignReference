@@ -7,6 +7,7 @@ namespace APC.UI.Demo.Templates
     /// <summary>불량 등록: 유형 + 수량 + LOT(스캔 또는 입력) → 등록.</summary>
     internal sealed class DefectView : ApcTemplateView
     {
+        private const int SampleRows = 33;
         private static readonly string[] Types = { "미성형", "버(Burr)", "변색", "치수 불량", "이물" };
 
         private readonly ApcComboBox _type = new ApcComboBox();
@@ -30,6 +31,10 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("qty", "수량");
             _grid.Columns.Add("lot", "LOT");
             _grid.Columns["lot"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 샘플: 오늘 등록된 불량을 표 높이만큼. 실제로는 데이터 인터페이스가 준다.
+            var at = new DateTime(2026, 11, 18, 11, 40, 0);
+            for (int i = 0; i < SampleRows; i++, at = at.AddMinutes(-9))
+                _grid.Rows.Add(at.ToString("HH:mm:ss"), _type.Items[i % _type.Items.Count], 1 + i % 3, "LOT-241118-" + (180 - i).ToString("000"));
 
             Body.Controls.Add(_grid);
             Body.Controls.Add(Row(Caption("유형"), _type, Caption("수량"), _qty, Caption("LOT"), _lot, add));

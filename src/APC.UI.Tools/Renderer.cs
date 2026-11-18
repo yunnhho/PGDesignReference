@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -22,6 +23,12 @@ namespace APC.UI.Tools
 
         public static Bitmap Render(string assemblyPath, string typeName, string themeDir, Size size)
         {
+            return Render(assemblyPath, typeName, themeDir, size, null);
+        }
+
+        /// <summary>size가 null이면 크기 고정 폼(dialog)은 자기 크기, 그 밖(화면·메인 창)은 1920×1080. issues가 있으면 배치 점검(LayoutLint) 결과를 채운다.</summary>
+        public static Bitmap Render(string assemblyPath, string typeName, string themeDir, Size? size, List<string> issues)
+        {
             Assembly asm;
             try { asm = AssemblyLoader.Load(assemblyPath); }
             catch (Exception ex) when (ex is IOException || ex is BadImageFormatException)
@@ -40,7 +47,17 @@ namespace APC.UI.Tools
             {
                 throw new RenderException(type.FullName + " 생성 실패: " + ex.InnerException.Message, ex.InnerException);
             }
-            using (view) return Draw(view, size);
+            using (view) return Draw(view, size ?? (IsFixedDialog(view) ? (Size?)null : new Size(1920, 1080)), issues);
+        }
+
+        // 크기를 바꿀 수 없는 폼(dialog)만 자기 크기로 그린다. 메인 창처럼 늘어나는 폼은 현장 기준 1920×1080.
+        private static bool IsFixedDialog(Control view)
+        {
+            var form = view as Form;
+            if (form == null) return false;
+            var resizable = form.GetType().GetProperty("Resizable", typeof(bool));   // ApcForm(사본이 둘일 수 있어 이름으로)
+            if (resizable != null) return !(bool)resizable.GetValue(form, null);
+            return form.FormBorderStyle != FormBorderStyle.Sizable && form.FormBorderStyle != FormBorderStyle.SizableToolWindow;
         }
 
         /// <summary>두 이미지를 높은 쪽 높이에 맞춰 비율대로 늘린 뒤 가로로 붙인다.</summary>
@@ -112,7 +129,7 @@ namespace APC.UI.Tools
         }
 
         // ponytail: 화면 밖에 잠깐 띄워서 그린다. 창 크기는 OS 최대 창 크기(대개 화면 크기)로 잘릴 수 있다; 더 큰 캡처가 필요하면 PrintWindow 방식으로 바꾼다.
-        private static Bitmap Draw(Control view, Size size)
+        private static Bitmap Draw(Control view, Size? requested, List<string> issues)
         {
             var form = view as Form;
             Form host = form ?? new Form();
@@ -128,10 +145,16 @@ namespace APC.UI.Tools
                 host.ShowInTaskbar = false;
                 host.StartPosition = FormStartPosition.Manual;
                 host.Location = new Point(-32000, -32000);
-                host.Size = size;
+                if (requested.HasValue) host.Size = requested.Value;
                 host.Show();
-                host.Size = size; // Load 이벤트에서 크기를 바꾸는 폼 대비
+                if (requested.HasValue) host.Size = requested.Value; // Load 이벤트에서 크기를 바꾸는 폼 대비
                 Application.DoEvents();
+                var size = host.Size;   // 크기 미지정 Form은 Load·DPI 배율이 끝난 뒤의 실제 크기
+                if (issues != null)
+                {
+                    try { issues.AddRange(LayoutLint.Inspect(view)); }
+                    catch (Exception ex) { issues.Add(LayoutLint.NotePrefix + "배치 점검 실패(" + ex.GetType().Name + ": " + ex.Message + ") — PNG를 눈으로 확인"); }
+                }
 
                 var bmp = new Bitmap(size.Width, size.Height);
                 host.DrawToBitmap(bmp, new Rectangle(Point.Empty, size));

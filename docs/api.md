@@ -1,4 +1,4 @@
-# APC.UI API (v1.5.0.0)
+# APC.UI API (v1.6.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -187,6 +187,7 @@
 - `protected static ApcButton Button(string text, ApcButtonVariant variant, int width = 110)`
 - `protected static FlowLayoutPanel Row(params Control[] controls)` — 왼쪽→오른쪽으로 쌓는 한 줄(필터·버튼 줄).
 - `protected static Label Caption(string text)`
+- `protected static TableLayoutPanel Columns(int height, Control[] cells, float[] percents = null)` — 카드·타일·판정판을 한 줄에 나란히(Dock=Top). percents가 없으면 같은 폭. 칸 간격 12px(마지막 칸 0), 줄 아래 간격 12px. height는 칸 높이(배율 적용한 값, 예: S(150)).
 - `protected static int S(int px)` — 배율 적용 px. ApcForm dialog 등 이 클래스 밖에서는 ApcTheme.Px.
 
 ## ApcTextBox
@@ -214,7 +215,7 @@
 
 `APC.UI.Controls` · class : Control
 
-현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 "--".
+현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸.
 - `ApcValueCard()`
 - `HorizontalAlignment ValueAlign { get; set; }`
 - `StatusKind Status { get; set; }`

@@ -13,7 +13,7 @@ namespace APC.UI.Demo.Templates
 
         public HistoryView() : base("이력 조회")
         {
-            _from.Value = DateTime.Today.AddDays(-7);
+            _from.Value = DateTime.Today.AddDays(-10);   // 샘플: 11일 × 설비 3대 = 표 높이만큼
             _to.Value = DateTime.Today;
             _from.Width = _to.Width = S(160);
 
@@ -46,8 +46,11 @@ namespace APC.UI.Demo.Templates
             int seed = 0;
             for (var d = _to.Value.Date; d >= _from.Value.Date; d = d.AddDays(-1))
             {
-                seed++;
-                _grid.Rows.Add(d.ToString("yyyy-MM-dd"), "사출기 0" + (seed % 3 + 1), "하우징 A-120", 1100 + seed * 13 % 200, seed * 7 % 23);
+                for (int m = 1; m <= 3; m++)   // 샘플: 하루 × 설비 3대
+                {
+                    seed++;
+                    _grid.Rows.Add(d.ToString("yyyy-MM-dd"), "사출기 0" + m, "하우징 A-120", (1100 + seed * 13 % 200).ToString("#,0"), seed * 7 % 23);
+                }
             }
         }
     }

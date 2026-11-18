@@ -26,6 +26,7 @@ namespace APC.UI.Checks
             Run("review-fix", RunReviewFixChecks);
             Run("input", RunInputChecks);
             Run("display", RunDisplayChecks);
+            Run("lint", RunLintChecks);
             Run("tools", RunToolChecks);  // 마지막: render가 전역 테마를 바꾼다
 
             Console.WriteLine(_failed == 0 ? "ALL PASSED (" + _passed + ")" : "FAILED " + _failed + " / " + (_passed + _failed));

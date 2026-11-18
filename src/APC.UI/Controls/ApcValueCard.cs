@@ -10,7 +10,7 @@ namespace APC.UI.Controls
 {
     /// <summary>
     /// 현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등).
-    /// 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 "--".
+    /// 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸.
     /// </summary>
     public class ApcValueCard : Control
     {
@@ -79,8 +79,8 @@ namespace APC.UI.Controls
 
         private void DrawValue(Graphics g, Rectangle area)
         {
-            bool empty = _value.Trim().Length == 0;
-            string text = empty ? "--" : _value;
+            if (_value.Trim().Length == 0) return;   // 값 없음(대기·통신 전)은 빈칸
+            string text = _value;
             var muted = ApcTheme.C(ApcTheme.Current.Colors.TextMuted);
             // 값 글자는 영역 높이에 맞춘다(카드를 키우면 값도 커진다).
             float px = Math.Max(12f, Math.Min(area.Height * 0.55f, S(64)));
@@ -95,7 +95,7 @@ namespace APC.UI.Controls
                 int x = _valueAlign == HorizontalAlignment.Center ? area.Left + (area.Width - total) / 2
                       : _valueAlign == HorizontalAlignment.Right ? area.Right - total : area.Left;
                 int y = area.Top + (area.Height - vs.Height) / 2;
-                TextRenderer.DrawText(g, text, big, new Point(x, y), empty ? muted : Cards.EmphasisColor(_status), noPad);
+                TextRenderer.DrawText(g, text, big, new Point(x, y), Cards.EmphasisColor(_status), noPad);
                 if (us.Width > 0)   // 단위는 값의 아래쪽 기준선에 맞춘다
                     TextRenderer.DrawText(g, _unit, unitFont, new Point(x + vs.Width + gap, y + vs.Height - us.Height - S(2)), muted, noPad);
             }

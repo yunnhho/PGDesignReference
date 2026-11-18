@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace APC.UI.Tools
@@ -11,7 +13,7 @@ namespace APC.UI.Tools
         private const string UsageText =
             "사용법:\n" +
             "  APC.UI.Tools api <dll> <out.md>\n" +
-            "  APC.UI.Tools render <assembly> <type> <themeDir> <out.png> [--size 1920x1080] [--compare <원본.png>]\n" +
+            "  APC.UI.Tools render <assembly> <type> <themeDir> <out.png> [--size WxH (기본: 고정 크기 dialog는 자기 크기, 그 밖 1920x1080)] [--compare <원본.png>]\n" +
             "  APC.UI.Tools attach <csproj>\n";
 
         [STAThread]
@@ -70,7 +72,7 @@ namespace APC.UI.Tools
         private static int RenderCmd(string[] args)
         {
             if (args.Length < 5) return Usage();
-            var size = new Size(1920, 1080);
+            Size? size = null;   // 없으면 Form은 자기 크기, 화면은 1920×1080
             string compare = null;
             for (int i = 5; i < args.Length; i++)
             {
@@ -88,10 +90,14 @@ namespace APC.UI.Tools
 
             string output = Path.GetFullPath(args[4]);
             Directory.CreateDirectory(Path.GetDirectoryName(output));   // 없는 폴더면 GDI+가 원인 없는 오류를 낸다
-            using (var bmp = Renderer.Render(args[1], args[2], args[3], size))
+            var issues = new List<string>();
+            using (var bmp = Renderer.Render(args[1], args[2], args[3], size, issues))
             {
                 bmp.Save(output, ImageFormat.Png);
-                Console.WriteLine("render -> " + output);
+                Console.WriteLine("render -> " + output + " (" + bmp.Width + "x" + bmp.Height + ")");
+                foreach (var issue in issues) Console.WriteLine(LayoutLint.IsNote(issue) ? issue : "점검: " + issue);
+                int count = issues.Count(i => !LayoutLint.IsNote(i));
+                Console.WriteLine(count == 0 ? "점검 0건" : "점검 " + count + "건 — 고친 뒤 다시 render");
                 if (compare == null) return 0;
 
                 string cmpPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(output)), Path.GetFileNameWithoutExtension(output) + ".compare.png");

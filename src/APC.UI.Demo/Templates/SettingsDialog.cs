@@ -28,7 +28,7 @@ namespace APC.UI.Demo.Templates
             StartPosition = FormStartPosition.CenterParent;
 
             int pad = ApcTheme.Px(14), gap = ApcTheme.Px(10), groupH = ApcTheme.Px(30 + 10 + RowH + 10), btnH = ApcTheme.Px(40);
-            ClientSize = new Size(ApcTheme.Px(680), ContentBounds.Top + pad + (groupH + gap) * (blocks.Length + 1) + btnH + pad);
+            ClientSize = new Size(ApcTheme.Px(680), ContentBounds.Top + pad + (groupH + gap) * (blocks.Length + 1) + btnH + pad + Padding.Bottom);
 
             var content = new Panel { Bounds = ContentBounds, Padding = new Padding(pad), BackColor = Color.Transparent };
 
