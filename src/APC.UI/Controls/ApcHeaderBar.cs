@@ -61,7 +61,7 @@ namespace APC.UI.Controls
             g.DrawImage(ApcTheme.GetImage("lamp_" + _status.ToString().ToLowerInvariant()), lampRect);
 
             var titleRect = Rectangle.FromLTRB(pad, 0, lampRect.Left - pad, Height);
-            TextRenderer.DrawText(g, _title, ApcTheme.GetFont(FontStyle.Bold), titleRect, fore, flags);
+            TextClip.Draw(g, this, _title, ApcTheme.GetFont(FontStyle.Bold), titleRect, fore, flags);
         }
 
         private void OnThemeChanged(object sender, EventArgs e) { Invalidate(); }

@@ -53,10 +53,10 @@ namespace APC.UI.Controls
 
             int x = pad * 2 + lamp, w = Width - x - pad, half = Height / 2;
             var flags = TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.Left;
-            TextRenderer.DrawText(g, Text, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(x, 0, w, half - S(2)), ApcTheme.C(c.Text),
+            TextClip.Draw(g, this, Text, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(x, 0, w, half - S(2)), ApcTheme.C(c.Text),
                 flags | TextFormatFlags.Bottom);
             var sc = _status == StatusKind.Warn || _status == StatusKind.Alarm ? ApcTheme.Status(_status) : ApcTheme.C(c.TextMuted);
-            TextRenderer.DrawText(g, _statusText, ApcTheme.GetFont(), new Rectangle(x, half + S(2), w, half - S(2)), sc, flags | TextFormatFlags.Top);
+            TextClip.Draw(g, this, _statusText, ApcTheme.GetFont(), new Rectangle(x, half + S(2), w, half - S(2)), sc, flags | TextFormatFlags.Top);
         }
 
         protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }

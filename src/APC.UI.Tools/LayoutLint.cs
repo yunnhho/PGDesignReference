@@ -1,14 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace APC.UI.Tools
 {
     /// <summary>
     /// 배치가 끝난(화면에 띄운) 컨트롤 트리를 검사해 사람이 render PNG에서 지적하던 문제를 글로 돌려준다:
-    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [취소][확인] 순서, 전체 선택된 글자.
+    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [취소][확인] 순서, 전체 선택된 글자, Apc 표시 컨트롤의 말줄임(…).
     /// APC.UI 내부(입력칸 속 TextBox, 표 스크롤바 등)는 들어가지 않는다. APC.UI 사본이 둘일 수 있어 형식은 이름으로 비교한다.
     /// </summary>
     public static partial class LayoutLint
@@ -39,7 +40,37 @@ namespace APC.UI.Tools
             bool dialog = IsDialog(root);
             CheckFieldRows(root, dialog, issues);
             if (dialog && theme != null) CheckFooter((Form)root, issues, theme);
+            CheckClipped(root, issues);
             return issues;
+        }
+
+        // Apc 표시 컨트롤(타일·카드·헤더 등)은 글자를 직접 그려 말줄임(…)한다. 한 번 그려 보며 APC.UI가 기록한 잘림을 받는다.
+        private static void CheckClipped(Control root, List<string> issues)
+        {
+            var apc = AllControls(root).Select(c => c.GetType().Assembly).FirstOrDefault(a => a.GetName().Name == ApcAssembly);
+            var log = apc == null ? null : apc.GetType("APC.UI.Drawing.TextClip").GetField("Log", BindingFlags.Static | BindingFlags.NonPublic);
+            if (log == null || root.Width <= 0 || root.Height <= 0) return;
+            var clipped = new List<Tuple<Control, string>>();
+            log.SetValue(null, clipped);
+            try { using (var bmp = new Bitmap(root.Width, root.Height)) root.DrawToBitmap(bmp, new Rectangle(Point.Empty, root.Size)); }
+            finally { log.SetValue(null, null); }
+            foreach (var c in clipped.Where(x => x.Item1.Visible).Distinct())
+                issues.Add(PathOf(c.Item1, root) + ": 글자 " + c.Item2 + " — 문구를 줄이거나 칸을 넓힌다");
+        }
+
+        private static IEnumerable<Control> AllControls(Control c)
+        {
+            yield return c;
+            foreach (Control k in c.Controls)
+                foreach (var d in AllControls(k)) yield return d;
+        }
+
+        private static string PathOf(Control c, Control root)
+        {
+            var parts = new List<string>();
+            for (var x = c; x != null && x != root; x = x.Parent) parts.Insert(0, Describe(x));
+            parts.Insert(0, root.GetType().Name);
+            return string.Join(" > ", parts.ToArray());
         }
 
         private static void Walk(Control c, string path, List<string> issues, Theme theme)
@@ -111,7 +142,9 @@ namespace APC.UI.Tools
 
             // 읽기 전용 표(이력·목록)는 샘플로 높이를 채운다. 입력 표(ReadOnly=false)는 칸 수가 정해져 있어 제외.
             if (!grid.ReadOnly || grid.RowTemplate.Height <= 0) return;
-            int body = grid.ClientSize.Height - (grid.ColumnHeadersVisible ? grid.ColumnHeadersHeight : 0);
+            // DataGridView는 테두리를 클라이언트 영역 안에 그린다 → 테두리만큼 빼야 스크롤바 판정과 같은 행 수가 나온다.
+            int border = grid.BorderStyle == BorderStyle.FixedSingle ? 2 : grid.BorderStyle == BorderStyle.Fixed3D ? 4 : 0;
+            int body = grid.ClientSize.Height - border - (grid.ColumnHeadersVisible ? grid.ColumnHeadersHeight : 0);
             int fits = body / grid.RowTemplate.Height;
             if (grid.RowCount < fits)
                 issues.Add(NotePrefix + path + ": 표 아래가 빔(행 " + grid.RowCount + ", " + fits + "행까지 들어감) — 이력·목록이면 샘플 행을 " + fits + "개로, 설비 수처럼 정해진 목록이면 그대로");

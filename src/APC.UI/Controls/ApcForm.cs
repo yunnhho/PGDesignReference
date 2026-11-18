@@ -136,7 +136,7 @@ namespace APC.UI.Controls
             x += lw + (int)(12 * s);
 
             var minRect = ButtonRect(WinButton.Minimize);
-            TextRenderer.DrawText(g, _titleText, ApcTheme.GetFont(FontStyle.Bold),
+            TextClip.Draw(g, this, _titleText, ApcTheme.GetFont(FontStyle.Bold),
                 Rectangle.FromLTRB(x, 0, minRect.Left - (int)(8 * s), TitleBarHeight), ApcTheme.C(c.Text),
                 TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
 
