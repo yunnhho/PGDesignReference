@@ -47,6 +47,16 @@ namespace APC.UI.Checks
             Check(Lint(p => { p.Controls.Add(new ApcTextBox { Top = 3, Width = 100 }); p.Controls.Add(new ApcButton { Text = "B", Left = 120, Width = 60, Height = 34 }); }).Any(i => i.Contains("어긋남")), "lint: misaligned row");
             Check(Lint(p => p.Controls.Add(new TextBox())).Any(i => i.Contains("표준 TextBox")), "lint: standard control");
             Check(Lint(p => { var t = new ApcTextBox { Text = "6205-2RS", Width = 150 }; p.Controls.Add(t); t.HideSelection = false; t.SelectAll(); }).Any(i => i.Contains("선택된 채")), "lint: fully selected text reported");
+            Check(Lint(p => { var n = new ApcNumericBox { DecimalPlaces = 1, Value = 50m, Width = 150 }; p.Controls.Add(n); n.TextBox.HideSelection = false; n.TextBox.SelectAll(); }).Any(i => i.Contains("선택된 채")), "lint: fully selected text inside ApcNumericBox reported");
+            using (var f = new ApcForm { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
+            {
+                var n = new ApcNumericBox { DecimalPlaces = 1, Value = 50m, Top = 60 };
+                f.Controls.Add(n);
+                f.Show();
+                Application.DoEvents();
+                // ActiveControl이 비면(창 활성화 안 됨) 아무것도 검증하지 않으므로 실패로 본다.
+                Check(f.ActiveControl == n && n.TextBox.TextLength > 0 && n.TextBox.SelectionLength == 0, "ApcForm: first ApcNumericBox is not shown fully selected");
+            }
             Check(Lint(p => p.Controls.Add(new ApcButton { Text = "A", Width = 0 })).Any(i => i.Contains("크기 0")), "lint: collapsed control reported");
             Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "저장", Width = 70 }); p.Controls.Add(new ApcButton { Text = "취소", Left = 80, Width = 70 }); }).Any(i => i.Contains("버튼 순서")), "lint: confirm before cancel");
             Check(Lint(p =>
@@ -63,6 +73,14 @@ namespace APC.UI.Checks
                 g.Rows.Add("x");
                 p.Controls.Add(g);
             }).Any(i => LayoutLint.IsNote(i) && i.Contains("표 아래가 빔")), "lint: underfilled read-only grid is a note");
+            Check(Lint(p =>
+            {
+                var g = new ApcGrid { Width = 440, Height = 200 };
+                g.Columns.Add("t", "시각"); g.Columns.Add("id", "셀 ID"); g.Columns.Add("v", "판정");
+                g.Columns[0].Width = 80; g.Columns[2].Width = 60;
+                g.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                p.Controls.Add(g);
+            }).Any(i => i.Contains("절반 넘게")), "lint: wide centered short-value column");
             using (var g = new ApcGrid())
                 Check(g.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter && g.ColumnHeadersDefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter, "grid: cells and headers centered by default");
             Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "취소", Width = 70 }); p.Controls.Add(new ApcButton { Text = "저장", Left = 80, Width = 70 }); }).Count == 0, "lint: clean row passes");

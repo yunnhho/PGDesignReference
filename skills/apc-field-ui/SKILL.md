@@ -106,9 +106,12 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 날짜·시각 | 날짜 `yyyy-MM-dd`, 당일 이력 시각 `HH:mm:ss`, 여러 날에 걸친 이력 `yyyy-MM-dd HH:mm:ss` |
 | 소수 자리 | ℃·%RH·kN·bar·kPa·m/min·A·V → `0.0`, mm → `0.00`, 불량률·가동률 % → `0.0`, 수량 → `#,0`(정수). 카드 값·표·알람 문구·기준 문구 모두 같은 자리수 |
 | 표 정렬 | `ApcGrid` 기본이 가운데(헤더 포함). 긴 글 열(알람 내용·비고·사유)만 `DefaultCellStyle.Alignment = MiddleLeft`. 숫자 열도 가운데 |
+| 표 열 폭 | 긴 글 열이 있으면 그 열 하나만 `AutoSizeMode = Fill`. 짧은 값 열(ID·시각·숫자·판정)뿐이면 램프 열 빼고 모두 Fill로 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다. render가 "표 폭 절반 넘게 차지"로 잡는다) |
 | 값 없음(대기·통신 전) | 빈칸(정지 설비라도 읽은 값이 있으면 그 값). `ApcValueCard.Value = ""`(값·단위 모두 안 그림), 표 셀은 `""`. `-`, `--`, `0` 쓰지 않음 |
+| 대기 중 직전 값 | 판정 화면이 대기(READY)인데 측정값 카드에 직전 검사 값을 남기면 `Footer`에 출처를 적는다(예: "직전 검사 CELL0260418 · 10:15:00"). 출처 없이 남기지 않는다 |
+| 상태 경계값 | 상·하한과 같은 값은 그 상태에 넣는다(경고 근접·한계 판정은 `>=`/`<=`). 상태 문구·램프·카드 색이 같은 판정 함수 하나를 쓴다 |
 | 글자 크기 | theme `fontSize` 그대로(10). 화면에서 `Font`를 따로 키우거나 줄이지 않음(판정판·카드 큰 글자는 컨트롤이 정함) |
-| 샘플 데이터 | 이력·목록 표는 표 높이만큼 행을 채운다(render가 "참고: 표 아래가 빔 … N개로"라고 알려 준다. 설비 목록처럼 개수가 정해진 표는 그대로). 상태는 정상(Run) 위주에 그 화면에서 뜻이 있는 이상 상태를 섞는다(모니터링: Warn·Alarm·Stop 각각 하나 이상, 판정: NG(Alarm) 몇 건). 집계(금일 생산·OK·NG·불량률)는 서로 맞고 이력 행 수 이상 |
+| 샘플 데이터 | 이력·목록 표는 표 높이만큼 행을 채운다. 행 수는 짐작하지 말고 첫 render가 알려 주는 수로 맞춘다("참고: 표 아래가 빔 … N개로", "표 세로 스크롤바 … N개로"). 설비 목록처럼 개수가 정해진 표는 그대로. 늘린 행은 같은 문구·같은 간격을 되풀이하지 않는다(설비·문구·값·시각 간격을 섞는다). 상태는 정상(Run) 위주에 그 화면에서 뜻이 있는 이상 상태를 섞는다(모니터링: Warn·Alarm·Stop 각각 하나 이상, 판정: NG(Alarm) 몇 건). 집계(금일 생산·OK·NG·불량률)는 서로 맞고 이력 행 수 이상 |
 
 ## 5. 새 그림이 필요할 때만
 
@@ -123,17 +126,20 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 
 ## 7. 완료 확인
 
-1. MSBuild로 빌드: `. /c/00P_PGDesignReference/tools/env.sh && "$MSBUILD" <sln> -v:m -clp:Summary -p:PreferredUILang=en-US` (`env.sh`가 설치된 Visual Studio/Build Tools에서 MSBuild를 찾는다. 못 찾으면 그 메시지를 사용자에게 전한다) (영어로 출력해 한글 CP949 깨짐을 피한다) — 마지막 요약 `0 Warning(s)`, `0 Error(s)`를 확인한다. 경고도 고친다.
+1. MSBuild로 빌드: `. /c/00P_PGDesignReference/tools/env.sh && "$MSBUILD" <sln> -v:m -nologo -noconlog "-flp:logfile=build.log;verbosity=minimal;encoding=utf-8;summary"; tail -8 build.log` (`env.sh`가 설치된 Visual Studio/Build Tools에서 MSBuild를 찾는다. 못 찾으면 그 메시지를 사용자에게 전한다) (한글 VS의 MSBuild 콘솔 출력은 CP949와 UTF-8이 섞여 깨진다. `PreferredUILang`·`iconv`로는 안 된다 → UTF-8 로그 파일로 읽는다) — 마지막 요약 `경고 0개`·`오류 0개`(영문 VS면 `0 Warning(s)`·`0 Error(s)`)를 확인한다. 경고도 고친다.
 2. 메인 폼과 각 dialog를 PNG로(형식 이름은 네임스페이스 없이 클래스 이름만, 예: `MainForm`, `RecipeDialog`):
    `/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe render <bin/Debug/앱.exe> MainForm <bin/Debug/themes/고객사> <out.png>` (Windows 경로는 `cygpath -w`)
    `--size`는 생략한다: 크기 고정 dialog(`Resizable = false`)는 자기 크기, 메인 폼·화면은 1920×1080으로 그린다. 출력 폴더는 없으면 만든다.
    예: `T=/c/00P_PGDesignReference/src/APC.UI.Tools/bin/Debug/APC.UI.Tools.exe; $T render "$(cygpath -w bin/Debug/App.exe)" RecipeDialog "$(cygpath -w "bin/Debug/themes/고객사")" "$(cygpath -w out/RecipeDialog.png)"`
    캡처를 받았다면 `--compare <캡처.png>` → `<out>.compare.png`
-3. **render 점검 0건까지 고친다.** render는 배치를 검사해 `점검: <컨트롤 경로>: <문제>`와 마지막 줄 `점검 N건`을 출력한다 — 글자 잘림, 부모 밖 넘침, 형제 겹침, 같은 줄 입력칸·버튼 위/높이 어긋남, 표준 컨트롤·직접 그린 `Control`, 표 스크롤바, [확인][취소] 순서, 글자 전체 선택된 채 표시. 고치고 다시 render해서 `점검 0건`을 확인한다. `참고:` 줄은 건수에 들지 않지만 4-1 샘플 기준대로 판단한다.
+3. **render 점검 0건까지 고친다.** render는 배치를 검사해 `점검: <컨트롤 경로>: <문제>`와 마지막 줄 `점검 N건`을 출력한다 — 글자 잘림, 부모 밖 넘침, 형제 겹침, 같은 줄 입력칸·버튼 위/높이 어긋남, 표준 컨트롤·직접 그린 `Control`, 표 스크롤바, 짧은 값 열이 표 폭 절반 넘게 차지, [확인][취소] 순서, 글자 전체 선택된 채 표시(숫자칸·날짜칸 안쪽 포함). 고치고 다시 render해서 `점검 0건`을 확인한다. `참고:` 줄은 건수에 들지 않지만 4-1 샘플 기준대로 판단한다.
 4. PNG를 직접 열어 아래를 눈으로 확인한다(도구가 못 보는 것). 걸리면 고치고 다시 render:
    - 4-1 기준(창 제목, 날짜·소수 형식, 빈 값, 긴 글 열만 왼쪽)
    - 샘플 값 정합(알람 문구 기준값 = 설정값 = 그래프 기준선, 추이 마지막 점 = 현재값, 집계 합)
    - 상태가 색만이 아니라 글(상태 문구·판정 글자)로도 보이는가, 한 화면에 Warn·Alarm·Stop이 다 나오는가
+   - 상한·하한 바로 옆 값(근접 경고 등)의 램프 색이 상태 문구와 같은가(경계값 판정)
+   - 대기 화면 카드에 남긴 값이 있으면 Footer에 직전 값이라는 출처가 있는가
+   - 이력 표의 늘린 행이 같은 문구·같은 간격의 반복으로 보이지 않는가
    - 큰 빈 공간·한쪽으로 쏠린 배치가 없는가(dialog는 `ClientSize`를 내용에 맞춘다)
 5. 사용자에게 PNG 경로와 함께 보여 주고, 마지막 render의 `점검 0건`·빌드 경고 0을 보고한다.
 

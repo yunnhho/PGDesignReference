@@ -45,7 +45,8 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("load", "최대 하중(kN)");
             _grid.Columns.Add("disp", "최종 변위(mm)");
             _grid.Columns.Add("result", "판정");
-            _grid.Columns["serial"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            // 짧은 값 열뿐이면 남는 폭을 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다).
+            foreach (DataGridViewColumn c in _grid.Columns) if (!(c is ApcLampColumn)) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             // 샘플 이력: 표 높이만큼, 금일 집계(OK 405 · NG 7)를 넘지 않게. 실제로는 데이터 인터페이스가 준다.
             var at = new DateTime(2026, 11, 18, 10, 15, 0);
             for (int i = 0; i < SampleHistoryRows; i++, at = at.AddSeconds(-50))

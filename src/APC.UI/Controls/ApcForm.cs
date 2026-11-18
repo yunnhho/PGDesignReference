@@ -223,7 +223,10 @@ namespace APC.UI.Controls
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
-            var box = ActiveControl as TextBoxBase;
+            // 숫자칸·날짜칸은 안쪽 입력칸이 포커스를 받는다 → 컨테이너의 ActiveControl을 따라 내려간다.
+            Control active = ActiveControl;
+            while (active is ContainerControl inner && inner.ActiveControl != null) active = inner.ActiveControl;
+            var box = active as TextBoxBase;
             if (box != null && box.SelectionLength == box.TextLength) box.Select(box.TextLength, 0);
         }
 
