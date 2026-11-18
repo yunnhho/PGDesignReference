@@ -46,7 +46,7 @@ namespace APC.UI.Controls
                 g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
                 g.DrawLine(pen, 0, TitleHeight, Width, TitleHeight);
             }
-            TextRenderer.DrawText(g, Text, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(ApcTheme.Px(BasePad), 0, Width - 2 * ApcTheme.Px(BasePad), TitleHeight),
+            TextClip.Draw(g, this, Text, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(ApcTheme.Px(BasePad), 0, Width - 2 * ApcTheme.Px(BasePad), TitleHeight),
                 ApcTheme.C(c.Text), TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
         }
 

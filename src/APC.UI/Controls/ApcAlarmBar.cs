@@ -81,7 +81,7 @@ namespace APC.UI.Controls
             string text = "⚠  " + CurrentMessage + (_messages.Count > 1 ? "   (" + (_index + 1) + "/" + _messages.Count + ")" : "");
             int pad = (int)(BasePadding * ApcTheme.Scale);
             var rect = Rectangle.FromLTRB(pad, 0, _ackButton.Left - pad, Height);
-            TextRenderer.DrawText(g, text, ApcTheme.GetFont(FontStyle.Bold), rect, ApcTheme.C(ApcTheme.Current.Colors.TextInverse),
+            TextClip.Draw(g, this, text, ApcTheme.GetFont(FontStyle.Bold), rect, ApcTheme.C(ApcTheme.Current.Colors.TextInverse),
                 TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
         }
 

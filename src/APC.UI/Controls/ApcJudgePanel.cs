@@ -58,7 +58,7 @@ namespace APC.UI.Controls
                 TextRenderer.DrawText(g, Text, big, main, fore,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
             if (subH > 0)
-                TextRenderer.DrawText(g, _subText, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(S(8), Height - subH, Width - S(16), subH - S(8)), fore,
+                TextClip.Draw(g, this, _subText, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(S(8), Height - subH, Width - S(16), subH - S(8)), fore,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
         }
 

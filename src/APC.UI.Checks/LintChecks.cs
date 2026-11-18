@@ -73,6 +73,10 @@ namespace APC.UI.Checks
                 g.Rows.Add("x");
                 p.Controls.Add(g);
             }).Any(i => LayoutLint.IsNote(i) && i.Contains("표 아래가 빔")), "lint: underfilled read-only grid is a note");
+            Check(Lint(p => p.Controls.Add(new ApcStatusTile { Text = "사출기 3", StatusText = "경고 · 금형 온도 상한 근접 64.0 ℃", Status = StatusKind.Warn, Width = 160, Height = 80 }))
+                .Any(i => i.Contains("말줄임")), "lint: ellipsized tile status text");
+            Check(!Lint(p => p.Controls.Add(new ApcStatusTile { Text = "사출기 3", StatusText = "경고", Width = 160, Height = 80 })).Any(i => i.Contains("말줄임")), "lint: fitting tile text passes");
+            CheckGridFitsMatchesScrollbar();
             Check(Lint(p =>
             {
                 var g = new ApcGrid { Width = 440, Height = 200 };
@@ -125,6 +129,23 @@ namespace APC.UI.Checks
             // 큰 표시 글자(4-1: 화면에서 Font를 키우지 않음)는 걸리되, 큰 글자는 표시 컨트롤로 하라고 안내한다
             Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "A", Left = 300, Width = 60 }); p.Controls.Add(new Label { Text = "12:00", Font = new Font(ApcTheme.Current.FontFamily, 24f), AutoSize = false, Bounds = new Rectangle(0, 0, 200, 50) }); })
                 .Any(i => i.Contains("테마와 다른 글꼴") && i.Contains("ApcValueCard")), "lint: large display text points to display controls");
+        }
+
+        // "표 아래가 빔 … N행까지 들어감"의 N행을 넣으면 스크롤바도 참고도 없어야 한다(둘이 다른 수를 세면 에이전트가 맞출 수 없다).
+        private static void CheckGridFitsMatchesScrollbar()
+        {
+            Func<int, List<string>> lintRows = n => Lint(p =>
+            {
+                var g = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = true };
+                g.Columns.Add("a", "A");
+                for (int r = 0; r < n; r++) g.Rows.Add("x");
+                p.Controls.Add(g);
+            });
+            var note = lintRows(1).FirstOrDefault(i => i.Contains("표 아래가 빔"));
+            int fits = note == null ? 0 : int.Parse(System.Text.RegularExpressions.Regex.Match(note, @"(\d+)행까지").Groups[1].Value);
+            var full = lintRows(fits);
+            foreach (var i in full) Console.WriteLine("      " + i);
+            Check(fits > 1 && full.Count == 0, "lint: grid rows suggested by note fit without scrollbar");
         }
 
         private class MidTextBox : ApcTextBox { }

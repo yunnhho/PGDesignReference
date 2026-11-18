@@ -61,29 +61,30 @@ namespace APC.UI.Controls
                 g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                 g.DrawImage(Cards.Lamp(_status), new Rectangle(Width - pad - lamp, (titleH - lamp) / 2, lamp, lamp));
             }
-            TextRenderer.DrawText(g, _title, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(pad, 0, Width - pad * 2 - lamp, titleH), ApcTheme.C(c.Text), flags);
+            TextClip.Draw(g, this, _title, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(pad, 0, Width - pad * 2 - lamp, titleH), ApcTheme.C(c.Text), flags);
 
             int footerH = _footer.Length > 0 ? S(32) : 0;
             var valueArea = Rectangle.FromLTRB(pad, titleH, Width - pad, Height - footerH);
-            DrawValue(g, valueArea);
+            // 값 글자 크기는 Footer 유무와 관계없이 같은 식(같은 높이 카드 = 같은 글자). Footer 자리는 늘 뺀다.
+            DrawValue(g, valueArea, Height - titleH - S(32));
 
             if (footerH > 0)
             {
                 int y = Height - footerH;
                 using (var pen = new Pen(ApcTheme.C(c.GridLine))) g.DrawLine(pen, pad, y, Width - pad, y);
                 var footColor = _status == StatusKind.Warn || _status == StatusKind.Alarm ? ApcTheme.Status(_status) : ApcTheme.C(c.TextMuted);
-                TextRenderer.DrawText(g, _footer, ApcTheme.GetFont(), new Rectangle(pad, y, Width - pad * 2, footerH), footColor,
+                TextClip.Draw(g, this, _footer, ApcTheme.GetFont(), new Rectangle(pad, y, Width - pad * 2, footerH), footColor,
                     flags | AlignFlag(_valueAlign));
             }
         }
 
-        private void DrawValue(Graphics g, Rectangle area)
+        private void DrawValue(Graphics g, Rectangle area, int sizeBase)
         {
             if (_value.Trim().Length == 0) return;   // 값 없음(대기·통신 전)은 빈칸
             string text = _value;
             var muted = ApcTheme.C(ApcTheme.Current.Colors.TextMuted);
             // 값 글자는 영역 높이에 맞춘다(카드를 키우면 값도 커진다).
-            float px = Math.Max(12f, Math.Min(area.Height * 0.55f, S(64)));
+            float px = Math.Max(12f, Math.Min(sizeBase * 0.55f, S(64)));
             using (var big = new Font(ApcTheme.Current.FontFamily, px, FontStyle.Bold, GraphicsUnit.Pixel))
             using (var unitFont = new Font(ApcTheme.Current.FontFamily, Math.Max(10f, px * 0.42f), FontStyle.Regular, GraphicsUnit.Pixel))
             {
