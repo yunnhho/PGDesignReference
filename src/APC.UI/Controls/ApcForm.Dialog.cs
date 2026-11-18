@@ -29,6 +29,7 @@ namespace APC.UI.Controls
 
         private readonly List<Block> _blocks = new List<Block>();
         private int _dialogWidth, _dialogHeight;
+        private bool _laidOut;
         private ApcButton _footerCancel, _footerConfirm;
         private ApcButton[] _footerLeft = new ApcButton[0];
 
@@ -36,6 +37,9 @@ namespace APC.UI.Controls
         protected void SetupDialog(string title, int width, int height = 0)
         {
             if (width <= 0) throw new ArgumentOutOfRangeException("width");
+            RequireNotShown();
+            if (height <= 0 && _blocks.Any(b => b.Kind == BlockKind.Fill))
+                throw new InvalidOperationException("AddContentFill을 쓴 dialog는 SetupDialog에 높이를 줘야 합니다.");
             TitleText = title;
             Resizable = false;
             MinimizeBox = false;
@@ -55,6 +59,7 @@ namespace APC.UI.Controls
         /// <summary>묶음 안 한 줄. 이름표 열은 묶음 밖 행과 같은 위치에 맞춘다.</summary>
         protected void AddFieldRow(ApcGroup group, string caption, Control field, params Control[] trailing)
         {
+            if (group == null) throw new ArgumentNullException("group");
             var block = _blocks.FirstOrDefault(b => b.Group == group);
             if (block == null) throw new InvalidOperationException("AddGroup으로 만든 묶음이 아닙니다.");
             block.Rows.Add(NewRow(caption, field, trailing, group));
@@ -134,12 +139,20 @@ namespace APC.UI.Controls
         protected override void OnLoad(EventArgs e)
         {
             if (_dialogWidth > 0) LayoutDialog();   // 가운데 배치(base.OnLoad) 전에 크기를 정한다
+            _laidOut = _dialogWidth > 0;
             base.OnLoad(e);
         }
 
         private void RequireSetup()
         {
             if (_dialogWidth <= 0) throw new InvalidOperationException("SetupDialog를 먼저 호출해야 합니다.");
+            RequireNotShown();
+        }
+
+        // 배치는 표시 직전(OnLoad) 한 번이라 그 뒤 헬퍼 호출은 반영되지 않는다 → 생성자에서만
+        private void RequireNotShown()
+        {
+            if (_laidOut) throw new InvalidOperationException("dialog 헬퍼는 생성자에서만 부를 수 있습니다(이미 배치됨).");
         }
 
         private Block NewRow(string caption, Control field, Control[] trailing, Control parent)
@@ -174,7 +187,7 @@ namespace APC.UI.Controls
             int fixedH = 0;
             for (int i = 0; i < _blocks.Count; i++) fixedH += Gap(i) + BlockHeight(_blocks[i], fieldH);
             int footerSpace = hasFooter ? (_blocks.Count > 0 ? ApcTheme.Px(ApcLayout.GroupGap) : 0) + btnH : 0;
-            if (_dialogHeight <= 0)
+            if (_dialogHeight <= 0 && (_blocks.Count > 0 || hasFooter))   // 헬퍼 없이 직접 배치한 dialog는 높이를 건드리지 않는다
                 ClientSize = new Size(ClientSize.Width, Padding.Top + pad + fixedH + footerSpace + pad + Padding.Bottom);
 
             var cb = ContentBounds;

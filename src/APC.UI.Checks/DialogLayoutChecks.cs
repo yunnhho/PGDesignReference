@@ -21,6 +21,50 @@ namespace APC.UI.Checks
             Check(Throws(() => new FillDialog(0, false)), "dialog: fill without height throws");
             Check(Throws(() => new FillDialog(400, true)), "dialog: second fill throws");
             CheckReviewFixes();
+            CheckHelperGuards();
+        }
+
+        private static void CheckHelperGuards()
+        {
+            // SetupDialog만 쓰고 직접 배치한 dialog는 높이를 건드리지 않는다
+            using (var d = new ManualDialog())
+            {
+                int before = d.ClientSize.Height;
+                ShowOffscreen(d);
+                Check(d.ClientSize.Height == before, "dialog: SetupDialog alone keeps manual height (" + before + " → " + d.ClientSize.Height + ")");
+            }
+            // 표시 뒤 헬퍼 호출은 배치에 반영되지 않으므로 막는다
+            using (var d = new ManualDialog())
+            {
+                ShowOffscreen(d);
+                Check(Throws<InvalidOperationException>(() => d.AddRowLate()), "dialog: helper after show throws");
+            }
+            Check(Throws<ArgumentNullException>(() => new GuardDialog(1)), "dialog: AddFieldRow with null group throws ArgumentNullException");
+            Check(Throws<InvalidOperationException>(() => new GuardDialog(2)), "dialog: SetupDialog height 0 after fill throws");
+        }
+
+        private sealed class ManualDialog : ApcForm
+        {
+            public ManualDialog()
+            {
+                SetupDialog("t", 400, 300);
+                SetupDialog("t", 400);   // 높이 자동이지만 헬퍼 배치 없음 → 300 유지
+                Controls.Add(new ApcTextBox { Bounds = new Rectangle(20, 60, 200, 34) });
+            }
+
+            public void AddRowLate() { AddFieldRow("늦음", new ApcTextBox()); }
+        }
+
+        private sealed class GuardDialog : ApcForm
+        {
+            public GuardDialog(int mode)
+            {
+                SetupDialog("t", 400, 300);
+                if (mode == 1) AddFieldRow((ApcGroup)null, "가", new ApcTextBox());
+                if (mode != 2) return;
+                AddContentFill(new ApcTrendChart());
+                SetupDialog("t", 400);
+            }
         }
 
         private static void CheckReviewFixes()
@@ -103,14 +147,17 @@ namespace APC.UI.Checks
             Application.DoEvents();
         }
 
-        private static bool Throws(Action a)
+        private static bool Throws(Action a) { return Throws<InvalidOperationException>(a); }
+
+        private static bool Throws<T>(Action a) where T : Exception
         {
             try
             {
                 a();
                 return false;
             }
-            catch (InvalidOperationException) { return true; }
+            catch (T) { return true; }
+            catch (Exception) { return false; }
         }
 
         private sealed class FieldDialog : ApcForm
