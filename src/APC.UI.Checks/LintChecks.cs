@@ -58,7 +58,7 @@ namespace APC.UI.Checks
                 Check(f.ActiveControl == n && n.TextBox.TextLength > 0 && n.TextBox.SelectionLength == 0, "ApcForm: first ApcNumericBox is not shown fully selected");
             }
             Check(Lint(p => p.Controls.Add(new ApcButton { Text = "A", Width = 0 })).Any(i => i.Contains("크기 0")), "lint: collapsed control reported");
-            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "저장", Width = 70 }); p.Controls.Add(new ApcButton { Text = "취소", Left = 80, Width = 70 }); }).Any(i => i.Contains("버튼 순서")), "lint: confirm before cancel");
+            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "취소", Width = 70 }); p.Controls.Add(new ApcButton { Text = "저장", Left = 80, Width = 70 }); }).Any(i => i.Contains("버튼 순서")), "lint: cancel before confirm");
             Check(Lint(p =>
             {
                 var g = new ApcGrid { Width = 300, Height = 100 };
@@ -107,7 +107,7 @@ namespace APC.UI.Checks
             }).Any(i => i.Contains("중복")), "lint: duplicate column header");
             using (var g = new ApcGrid())
                 Check(g.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter && g.ColumnHeadersDefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter, "grid: cells and headers centered by default");
-            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "취소", Width = 70 }); p.Controls.Add(new ApcButton { Text = "저장", Left = 80, Width = 70 }); }).Count == 0, "lint: clean row passes");
+            Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "저장", Width = 70 }); p.Controls.Add(new ApcButton { Text = "취소", Left = 80, Width = 70 }); }).Count == 0, "lint: clean row passes");
             CheckDialogLintCatches();
         }
 

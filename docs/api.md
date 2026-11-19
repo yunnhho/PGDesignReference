@@ -1,4 +1,4 @@
-# APC.UI API (v1.10.0.0)
+# APC.UI API (v1.11.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -85,7 +85,7 @@
 - `protected void AddContentRow(params Control[] cells)` — 카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 c.Height)로. 칸 간격은 ApcLayout.ItemGap. 2×2는 두 번 부른다.
 - `protected void AddFieldRow(ApcGroup group, string caption, Control field, params Control[] trailing)` — 묶음 안 한 줄. 이름표 열은 묶음 밖 행과 같은 위치에 맞춘다.
 - `protected void AddFieldRow(string caption, Control field, params Control[] trailing)` — 이름표 + 입력칸 한 줄. trailing이 없으면 입력칸이 남은 폭을 채우고, 있으면 모두 자기 Width로 왼→오.
-- `protected void SetFooter(ApcButton cancel, ApcButton confirm, params ApcButton[] left)` — 하단 버튼 줄: 오른쪽 [취소][확정](cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).
+- `protected void SetFooter(ApcButton cancel, ApcButton confirm, params ApcButton[] left)` — 하단 버튼 줄: 오른쪽 [확정][취소](취소가 끝, cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).
 - `protected void SetupDialog(string title, int width, int height = 0)` — dialog 기본 속성과 크기(배율 전 px). height 0 = 내용으로 자동(AddContentFill을 쓰면 필수).
 - `string TitleText { get; set; }`
 

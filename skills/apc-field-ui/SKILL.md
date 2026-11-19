@@ -91,7 +91,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | `AddContent(c)` / `AddContentFill(c)` | 표·상태 줄·그래프. `AddContent`는 `c.Height`(`ApcTheme.Px`) 그대로, `AddContentFill`은 남은 높이(`SetupDialog`에 height 필수, 하나만). 표 높이는 `ApcGrid.HeightForRows(행 수)` |
 | `AddContentRow(c1, c2, ...)` | 카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 `c.Height`)로. 2×2는 두 번 부른다. 카드 격자를 `TableLayoutPanel`로 직접 짜지 않는다(자식 기본 `Margin` 3px 때문에 render "빈 공간" 점검이 나온다) |
 | `SectionTitle(text)` | 구획 제목(굵게). `AddContent(SectionTitle("..."))` |
-| `SetFooter(cancel, confirm[, left...])` | 오른쪽 아래 **[취소][확정]**(확정이 오른쪽 끝, 110×40), 왼쪽 보조 버튼(`비밀번호 변경` 등). Esc = 취소. 보기용은 `SetFooter(null, 닫기)` + 닫기에 `DialogResult = OK`(그래야 Esc도 닫기). 확정 버튼 하나뿐인 입력 dialog는 Esc가 없다 — 취소 버튼을 둔다. Enter(`AcceptButton`)는 스캔이 없는 dialog에서만 직접 지정 |
+| `SetFooter(cancel, confirm[, left...])` | 오른쪽 아래 **[확정][취소]**(취소가 오른쪽 끝, 110×40), 왼쪽 보조 버튼(`비밀번호 변경` 등). Esc = 취소. 보기용은 `SetFooter(null, 닫기)` + 닫기에 `DialogResult = OK`(그래야 Esc도 닫기). 확정 버튼 하나뿐인 입력 dialog는 Esc가 없다 — 취소 버튼을 둔다. Enter(`AcceptButton`)는 스캔이 없는 dialog에서만 직접 지정 |
 
 - 헬퍼는 **생성자에서만** 부른다(표시 직전 한 번 배치, 그 뒤 호출은 예외). 이름표는 `AddFieldRow`가 만든다. `Label`·`Font`·`Panel` 버튼 줄을 직접 만들지 않는다. 한 dialog가 폭에 안 들어가면(render "부모 밖으로 넘침") `SetupDialog` 폭을 늘린다.
 - `Columns()`·`Row()`·`S()`는 `ApcTemplateView` 것이라 dialog에서는 쓸 수 없다(dialog 크기는 `ApcTheme.Px`).

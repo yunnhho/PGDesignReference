@@ -156,7 +156,7 @@ namespace APC.UI.Checks
                 Check(left0 == left1 && left1 == left2, "dialog: field left edges equal (" + left0 + "," + left1 + "," + left2 + ")");
                 Check(d.Speed.Top - d.Name0.Bottom == px(ApcLayout.RowGap), "dialog: row gap is RowGap");
                 var cb = d.ContentBounds;
-                Check(d.Cancel.Right + px(ApcLayout.ItemGap) == d.Save.Left && d.Save.Right == cb.Right - px(ApcLayout.Pad)
+                Check(d.Save.Right + px(ApcLayout.ItemGap) == d.Cancel.Left && d.Cancel.Right == cb.Right - px(ApcLayout.Pad)
                       && d.Save.Size == new Size(px(110), px(40)) && d.Cancel.Size == d.Save.Size && d.CancelButton == d.Cancel,
                       "dialog: footer order and size");
                 Check(d.Save.Bottom == cb.Bottom - px(ApcLayout.Pad) && d.Save.Top - d.Group.Bottom == px(ApcLayout.GroupGap),

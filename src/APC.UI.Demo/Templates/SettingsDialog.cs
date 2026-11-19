@@ -6,7 +6,7 @@ namespace APC.UI.Demo.Templates
 {
     /// <summary>
     /// 통신·장비 설정 dialog 골격(참고: Failure Analysis 시스템 설정). 블록(설비 묶음)마다 AddGroup 하나에
-    /// 포트·신호·로직 선택 + 연결 시도, 아래 공통 설정 묶음, 맨 아래 왼쪽 [비밀번호 변경] / 오른쪽 [취소][저장].
+    /// 포트·신호·로직 선택 + 연결 시도, 아래 공통 설정 묶음, 맨 아래 왼쪽 [비밀번호 변경] / 오른쪽 [저장][취소].
     /// 저장은 Confirm("저장") 뒤 결과를 넘긴다. 실제 연결 시도·저장은 부른 쪽 데이터 인터페이스가 한다.
     /// </summary>
     internal sealed class SettingsDialog : ApcForm
