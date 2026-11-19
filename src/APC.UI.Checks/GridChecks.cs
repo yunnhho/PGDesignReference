@@ -26,7 +26,7 @@ namespace APC.UI.Checks
                 Check(lc.ImageNameFor(new ApcLampValue(StatusKind.Warn, "x")) == "lamp_warn" && lc.ImageNameFor(StatusKind.Run) == "lamp_run", "grid: lamp column accepts StatusKind and ApcLampValue");
                 Check(new ApcLampValue(StatusKind.Run, "b").CompareTo(new ApcLampValue(StatusKind.Alarm, "a")) < 0
                       && new ApcLampValue(StatusKind.Run, "a").CompareTo(new ApcLampValue(StatusKind.Run, "b")) < 0, "grid: lamp value sorts by status then text");
-                Check(g.CellBorderStyle == DataGridViewCellBorderStyle.Single && g.GridColor != ApcTheme.C(ApcTheme.Current.Colors.GridLine), "grid: vertical lines with visible line color");
+                Check(g.CellBorderStyle == DataGridViewCellBorderStyle.Single && g.GridColor.ToArgb() == ApcTheme.C(ApcTheme.Current.Colors.Border).ToArgb(), "grid: cell lines use border color (not faded)");
             }
             using (var g = new ApcGrid())
                 Check(ApcGrid.HeightForRows(3) == g.ColumnHeadersHeight + 3 * ApcTheme.MinHeight + 2, "grid: HeightForRows = header + rows + border");

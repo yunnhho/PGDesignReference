@@ -47,7 +47,7 @@ namespace APC.UI.Controls
             var text = ApcTheme.C(c.Text);
             Font = ApcTheme.GetFont();
             BackgroundColor = Color.White;
-            GridColor = LineColor(c);
+            GridColor = ApcTheme.C(c.Border);   // 칸 선은 테두리 색 그대로 — 연한 선은 현장 모니터에서 안 보인다
             DefaultCellStyle.ForeColor = text;
             DefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridSelected);
             DefaultCellStyle.SelectionForeColor = text;
@@ -55,15 +55,6 @@ namespace APC.UI.Controls
             ColumnHeadersDefaultCellStyle.ForeColor = text;
             ColumnHeadersDefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridHeader[1]);
             foreach (DataGridViewRow row in Rows) row.Height = RowTemplate.Height;
-        }
-
-        /// <summary>
-        /// 칸 선 색 = 테두리 색과 흰색 중간. gridLine(입력칸 읽기 전용 바탕과 같은 색)은 너무 옅어 흰 셀 사이에서 선이 안 보인다.
-        /// </summary>
-        internal static Color LineColor(ThemeColors c)
-        {
-            var b = ApcTheme.C(c.Border);
-            return Color.FromArgb((b.R + 255 * 2) / 3, (b.G + 255 * 2) / 3, (b.B + 255 * 2) / 3);
         }
 
         /// <summary>기본 폭 100px은 한글 폰트에서 코드값(WO-24117-01 등)이 잘린다.</summary>
@@ -83,7 +74,8 @@ namespace APC.UI.Controls
             Gradients.Fill(e.Graphics, e.CellBounds, c.GridHeader);
             using (var pen = new Pen(ApcTheme.C(c.Border)))
             {
-                e.Graphics.DrawLine(pen, e.CellBounds.Right - 1, e.CellBounds.Top + 4, e.CellBounds.Right - 1, e.CellBounds.Bottom - 5);
+                // 표 머리줄 구분선은 위아래 끝까지 닿게. 끝이 떨어진 구분선은 설정창 같은 곳의 칸 제목 줄 전용이다.
+                e.Graphics.DrawLine(pen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom - 1);
                 e.Graphics.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
             }
             e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);

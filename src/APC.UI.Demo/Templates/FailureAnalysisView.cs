@@ -220,7 +220,7 @@ namespace APC.UI.Demo.Templates
                     var sub = new Rectangle(e.CellBounds.X, e.CellBounds.Y + half, e.CellBounds.Width, e.CellBounds.Height - half);
                     using (var pen = new Pen(ApcTheme.C(c.Border)))
                     {
-                        e.Graphics.DrawLine(pen, sub.Right - 1, sub.Top + 3, sub.Right - 1, sub.Bottom - 4);
+                        e.Graphics.DrawLine(pen, sub.Right - 1, sub.Top, sub.Right - 1, sub.Bottom - 1);   // 머리줄 구분선은 끝까지 닿게(ApcGrid와 같음)
                         e.Graphics.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
                     }
                     TextRenderer.DrawText(e.Graphics, Convert.ToString(e.Value), ColumnHeadersDefaultCellStyle.Font, sub, ApcTheme.C(c.Text),
@@ -251,7 +251,7 @@ namespace APC.UI.Demo.Templates
                     using (var pen = new Pen(ApcTheme.C(c.Border)))
                     {
                         e.Graphics.DrawLine(pen, top.Left, top.Bottom - 1, top.Right, top.Bottom - 1);
-                        e.Graphics.DrawLine(pen, top.Right - 1, top.Top + 3, top.Right - 1, top.Bottom);
+                        e.Graphics.DrawLine(pen, top.Right - 1, top.Top, top.Right - 1, top.Bottom);
                     }
                     TextRenderer.DrawText(e.Graphics, g.Text, ColumnHeadersDefaultCellStyle.Font, top, ApcTheme.C(c.Text),
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
