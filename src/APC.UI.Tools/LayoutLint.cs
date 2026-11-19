@@ -140,6 +140,10 @@ namespace APC.UI.Tools
                 if (cols.Count >= 3 && col.Width * 2 > grid.ClientSize.Width && col.InheritedStyle.Alignment != DataGridViewContentAlignment.MiddleLeft)
                     issues.Add(path + ": 열 '" + col.HeaderText + "'가 표 폭 절반 넘게 차지(" + col.Width + "/" + grid.ClientSize.Width + "px) — 짧은 값 열뿐이면 램프 열 빼고 모두 Fill로 고르게, 긴 글 열이면 MiddleLeft로");
 
+            // 램프 열(기본 제목 "상태")과 같은 제목의 글 열은 어느 열이 무엇인지 모른다. 묶음 머리글 표의 하위 열 반복은 정상이라 램프 열 중복만 본다.
+            foreach (var dup in cols.GroupBy(x => x.HeaderText.Trim()).Where(g => g.Key.Length > 0 && g.Count() > 1 && g.Any(x => x.GetType().Name == "ApcLampColumn")))
+                issues.Add(path + ": 열 제목 '" + dup.Key + "' 중복 — 램프 열 기본 제목이 '상태'이니 글 열은 '내용'·'판정' 등으로");
+
             // 읽기 전용 표(이력·목록)는 샘플로 높이를 채운다. 입력 표(ReadOnly=false)는 칸 수가 정해져 있어 제외.
             if (!grid.ReadOnly || grid.RowTemplate.Height <= 0) return;
             // DataGridView는 테두리를 클라이언트 영역 안에 그린다 → 테두리만큼 빼야 스크롤바 판정과 같은 행 수가 나온다.
