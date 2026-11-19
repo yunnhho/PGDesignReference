@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using APC.UI.Tools;
@@ -7,8 +7,16 @@ namespace APC.UI.Checks
 {
     internal static partial class Program
     {
+        private static void ThrowForWhere() { throw new IndexOutOfRangeException("t"); }
+
         private static void RunToolChecks()
         {
+            try { ThrowForWhere(); }
+            catch (Exception ex)
+            {
+                string w = Renderer.Where(ex, typeof(Program).Assembly);
+                Check(w.Contains("ThrowForWhere") && w.Contains("ToolChecks.cs:"), "render: construction failure names app code location (" + w + ")");
+            }
             string dll = Path.Combine(Root, @"src\APC.UI\bin\Debug\APC.UI.dll");
             var md = ApiWriter.Write(dll);
             Check(md.StartsWith("# APC.UI API (v" + typeof(APC.UI.Controls.ApcButton).Assembly.GetName().Version + ")"), "api: header carries version");

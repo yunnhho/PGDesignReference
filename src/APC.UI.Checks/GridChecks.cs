@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -12,6 +12,15 @@ namespace APC.UI.Checks
         {
             using (var g = new ApcGrid())
                 Check(ApcGrid.HeightForRows(3) == g.ColumnHeadersHeight + 3 * ApcTheme.MinHeight + 2, "grid: HeightForRows = header + rows + border");
+            using (var g = new FormatGrid())
+            {
+                g.Columns.Add("v", "값");
+                g.Rows.Add("61.8");
+                var alarm = ApcTheme.Status(StatusKind.Alarm);
+                var style = new DataGridViewCellStyle(g.DefaultCellStyle) { ForeColor = alarm };
+                Check(g.Format(style).SelectionForeColor == alarm, "grid: status-colored cell keeps its color when selected");
+                Check(g.Format(new DataGridViewCellStyle(g.DefaultCellStyle)).SelectionForeColor == g.DefaultCellStyle.SelectionForeColor, "grid: plain cell keeps default selection color");
+            }
             // 화면에 뜰 때 첫 행이 저절로 선택(파란 줄)되지 않는다. 앱이 고른 선택은 남는다.
             using (var form = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
             {
@@ -88,6 +97,16 @@ namespace APC.UI.Checks
         {
             c.Size = new Size(300, 120);
             using (var bmp = new Bitmap(300, 120)) c.DrawToBitmap(bmp, new Rectangle(0, 0, 300, 120));
+        }
+    
+        private sealed class FormatGrid : ApcGrid
+        {
+            public DataGridViewCellStyle Format(DataGridViewCellStyle style)
+            {
+                var e = new DataGridViewCellFormattingEventArgs(0, 0, "61.8", typeof(string), style);
+                OnCellFormatting(e);
+                return e.CellStyle;
+            }
         }
     }
 }

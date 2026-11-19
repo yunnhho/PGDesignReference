@@ -115,7 +115,10 @@ namespace APC.UI.Controls
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
             base.OnCellFormatting(e);
-            if (ReadOnly || ApcTheme.Current == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (ApcTheme.Current == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            // 셀에 상태색 글자(기준 이탈 강조)를 줬으면 선택 행에서도 그 색을 유지한다 — 선택 글자색에 묻히지 않게.
+            if (e.CellStyle.ForeColor != DefaultCellStyle.ForeColor) e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor;
+            if (ReadOnly) return;
             if (Columns[e.ColumnIndex].ReadOnly) e.CellStyle.BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);
         }
 
