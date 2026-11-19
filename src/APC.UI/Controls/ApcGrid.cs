@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Drawing;
@@ -86,9 +87,19 @@ namespace APC.UI.Controls
 
         private void ClearAutoSelection()
         {
-            if (_userSelected || !ClearInitialSelection || !IsHandleCreated) return;
+            if (_userSelected || !IsHandleCreated) return;
+            if (!ClearInitialSelection) { SkipReadOnlyStart(); return; }
             ClearSelection();
             if (CurrentCell != null && !IsCurrentCellInEditMode) CurrentCell = null;
+        }
+
+        // 입력 표의 시작 칸이 읽기 전용 열(구역·슬롯 이름)에 잡히면 같은 행의 첫 입력 칸으로 옮긴다.
+        private void SkipReadOnlyStart()
+        {
+            var cell = CurrentCell;
+            if (ReadOnly || cell == null || !Columns[cell.ColumnIndex].ReadOnly || IsCurrentCellInEditMode) return;
+            var first = Columns.Cast<DataGridViewColumn>().Where(c => c.Visible && !c.ReadOnly).OrderBy(c => c.DisplayIndex).FirstOrDefault();
+            if (first != null) CurrentCell = Rows[cell.RowIndex].Cells[first.Index];
         }
 
         protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); ClearAutoSelection(); }

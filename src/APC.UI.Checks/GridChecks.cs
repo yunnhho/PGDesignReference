@@ -12,6 +12,17 @@ namespace APC.UI.Checks
         {
             using (var g = new ApcGrid())
                 Check(ApcGrid.HeightForRows(3) == g.ColumnHeadersHeight + 3 * ApcTheme.MinHeight + 2, "grid: HeightForRows = header + rows + border");
+            using (var form = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
+            {
+                var g = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = false, ClearInitialSelection = false };
+                g.Columns.Add("zone", "구역"); g.Columns.Add("lo", "하한");
+                g.Columns[0].ReadOnly = true;
+                g.Rows.Add("A1", "20.0"); g.Rows.Add("A2", "20.0");
+                form.Controls.Add(g);
+                form.Show();
+                Application.DoEvents();
+                Check(g.CurrentCell != null && g.CurrentCell.ColumnIndex == 1 && g.CurrentCell.RowIndex == 0, "grid: input table starts on first editable cell, not read-only column");
+            }
             using (var g = new FormatGrid())
             {
                 g.Columns.Add("v", "값");
