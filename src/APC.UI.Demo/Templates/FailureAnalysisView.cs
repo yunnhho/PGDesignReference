@@ -223,8 +223,7 @@ namespace APC.UI.Demo.Templates
                         e.Graphics.DrawLine(pen, sub.Right - 1, sub.Top, sub.Right - 1, sub.Bottom - 1);   // 머리줄 구분선은 끝까지 닿게(ApcGrid와 같음)
                         e.Graphics.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
                     }
-                    TextRenderer.DrawText(e.Graphics, Convert.ToString(e.Value), ColumnHeadersDefaultCellStyle.Font, sub, ApcTheme.C(c.Text),
-                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    ApcGrid.DrawHeaderText(e.Graphics, sub, Convert.ToString(e.Value), ColumnHeadersDefaultCellStyle.Font);
                     e.Handled = true;
                     return;
                 }
@@ -253,8 +252,7 @@ namespace APC.UI.Demo.Templates
                         e.Graphics.DrawLine(pen, top.Left, top.Bottom - 1, top.Right, top.Bottom - 1);
                         e.Graphics.DrawLine(pen, top.Right - 1, top.Top, top.Right - 1, top.Bottom);
                     }
-                    TextRenderer.DrawText(e.Graphics, g.Text, ColumnHeadersDefaultCellStyle.Font, top, ApcTheme.C(c.Text),
-                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    ApcGrid.DrawHeaderText(e.Graphics, top, g.Text, ColumnHeadersDefaultCellStyle.Font);
                 }
             }
         }

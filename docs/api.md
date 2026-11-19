@@ -1,4 +1,4 @@
-# APC.UI API (v1.12.1.0)
+# APC.UI API (v1.13.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -99,6 +99,7 @@
 - `ApcGrid()`
 - `bool ClearInitialSelection { get; set; }` — true(기본)면 사용자가 누르기 전엔 선택 행이 없다. 입력 표(스캔으로 칸을 채우는 dialog 등)처럼 앱이 CurrentCell을 정해 두고 바로 입력받아야 하면 false.
 - `static int HeightForRows(int rows)` — 머리줄 + 행 rows개가 빈 줄·스크롤바 없이 들어가는 표 높이(배율 적용 px). dialog의 AddContent 표 높이에 쓴다.
+- `static void DrawHeaderText(Graphics g, Rectangle cell, string text, Font font)` — 머리줄 글자를 칸 정가운데에. 기본 그리기는 정렬 화살표 자리·안쪽 여백만큼 왼쪽으로 1~2px 치우친다. 오른쪽 구분선·아래 선 1px은 빼고 가운데를 잡는다. 묶음 머리줄 등 직접 그리는 곳도 이것을 쓴다.
 
 ## ApcGroup
 

@@ -78,8 +78,25 @@ namespace APC.UI.Controls
                 e.Graphics.DrawLine(pen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom - 1);
                 e.Graphics.DrawLine(pen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
             }
-            e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);
+            var col = e.ColumnIndex >= 0 ? Columns[e.ColumnIndex] : null;
+            if (col == null || col.HeaderCell.SortGlyphDirection != SortOrder.None)
+                e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);   // 정렬 화살표는 기본 그리기에 맡김
+            else
+                DrawHeaderText(e.Graphics, e.CellBounds, Convert.ToString(e.FormattedValue), e.CellStyle.Font);
             e.Handled = true;
+        }
+
+        /// <summary>
+        /// 머리줄 글자를 칸 정가운데에. 기본 그리기는 정렬 화살표 자리·안쪽 여백만큼 왼쪽으로 1~2px 치우친다.
+        /// 오른쪽 구분선·아래 선 1px은 빼고 가운데를 잡는다. 묶음 머리줄 등 직접 그리는 곳도 이것을 쓴다.
+        /// </summary>
+        public static void DrawHeaderText(Graphics g, Rectangle cell, string text, Font font)
+        {
+            if (string.IsNullOrEmpty(text) || ApcTheme.Current == null) return;
+            var inner = new Rectangle(cell.X, cell.Y, cell.Width - 1, cell.Height - 1);
+            TextRenderer.DrawText(g, text, font, inner, ApcTheme.C(ApcTheme.Current.Colors.Text),
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding
+                | TextFormatFlags.NoPrefix | TextFormatFlags.WordBreak | TextFormatFlags.EndEllipsis);
         }
 
         // DataGridView는 화면에 뜰 때·행이 추가될 때 첫 행을 저절로 선택해 파란 줄이 생긴다(모니터링 표에서 '선택된 행'으로 오해).
