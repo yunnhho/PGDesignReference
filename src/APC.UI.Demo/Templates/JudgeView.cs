@@ -49,11 +49,12 @@ namespace APC.UI.Demo.Templates
             foreach (DataGridViewColumn c in _grid.Columns) if (!(c is ApcLampColumn)) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             // 샘플 이력: 표 높이만큼, 금일 집계(OK 405 · NG 7)를 넘지 않게. 실제로는 데이터 인터페이스가 준다.
             var at = new DateTime(2026, 11, 18, 10, 15, 0);
-            for (int i = 0; i < SampleHistoryRows; i++, at = at.AddSeconds(-50))
+            // 값·간격 주기를 서로 다르게(13·17·19) 해서 행이 되풀이로 보이지 않게 한다.
+            for (int i = 0; i < SampleHistoryRows; i++, at = at.AddSeconds(-(41 + i * 7 % 19)))
             {
                 bool ng = i % 9 == 1;
-                double load = ng ? 12.6 : 10.0 + (i * 7 % 10) / 10.0;
-                double disp = 4.95 + (i * 3 % 10) / 100.0;
+                double load = ng ? 12.4 + (i % 4) / 10.0 : 10.0 + (i * 7 % 13) / 10.0;
+                double disp = 4.95 + (i * 5 % 17) / 100.0;
                 _grid.Rows.Add(ng ? StatusKind.Alarm : StatusKind.Run, "BP" + (2411045 - i), at.ToString("HH:mm:ss"),
                     load.ToString("0.0"), disp.ToString("0.00"), ng ? "NG · 하중 상한" : "OK");
             }

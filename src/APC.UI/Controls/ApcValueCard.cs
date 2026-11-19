@@ -11,6 +11,7 @@ namespace APC.UI.Controls
     /// <summary>
     /// 현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등).
     /// 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸.
+    /// 값이 두 개인 카드는 ValueStatus/FooterStatus로 값·Footer 글자색을 그 항목 판정대로 따로 준다(램프·테두리는 Status).
     /// </summary>
     public class ApcValueCard : Control
     {
@@ -19,6 +20,7 @@ namespace APC.UI.Controls
         private string _unit = "";
         private string _footer = "";
         private StatusKind _status = StatusKind.Run;
+        private StatusKind? _valueStatus, _footerStatus;
         private bool _showLamp;
         private HorizontalAlignment _valueAlign = HorizontalAlignment.Left;
 
@@ -39,6 +41,12 @@ namespace APC.UI.Controls
         [DefaultValue("")] public string Footer { get { return _footer; } set { _footer = value ?? ""; Invalidate(); } }
 
         [DefaultValue(StatusKind.Run)] public StatusKind Status { get { return _status; } set { _status = value; Invalidate(); } }
+
+        /// <summary>큰 값 글자색만 따로 정할 때(값이 두 개인 카드: 카드는 습도 경고인데 온도 값은 정상). null이면 Status.</summary>
+        [DefaultValue(null)] public StatusKind? ValueStatus { get { return _valueStatus; } set { _valueStatus = value; Invalidate(); } }
+
+        /// <summary>Footer 글자색만 따로 정할 때(Footer에 적은 보조 값이 정상인데 카드는 알람). null이면 Status.</summary>
+        [DefaultValue(null)] public StatusKind? FooterStatus { get { return _footerStatus; } set { _footerStatus = value; Invalidate(); } }
         [DefaultValue(false)] public bool ShowLamp { get { return _showLamp; } set { _showLamp = value; Invalidate(); } }
         [DefaultValue(HorizontalAlignment.Left)] public HorizontalAlignment ValueAlign { get { return _valueAlign; } set { _valueAlign = value; Invalidate(); } }
 
@@ -63,23 +71,24 @@ namespace APC.UI.Controls
             }
             TextClip.Draw(g, this, _title, ApcTheme.GetFont(FontStyle.Bold), new Rectangle(pad, 0, Width - pad * 2 - lamp, titleH), ApcTheme.C(c.Text), flags);
 
-            int footerH = _footer.Length > 0 ? S(32) : 0;
-            var valueArea = Rectangle.FromLTRB(pad, titleH, Width - pad, Height - footerH);
-            // 값 글자 크기는 Footer 유무와 관계없이 같은 식(같은 높이 카드 = 같은 글자). Footer 자리는 늘 뺀다.
-            DrawValue(g, valueArea, Height - titleH - S(32));
+            // Footer 자리는 Footer가 없어도 늘 뺀다 → 같은 높이 카드는 값 글자 크기·높이가 같다(한 줄에 섞여도 값이 나란하다).
+            int footerH = S(32);
+            DrawValue(g, Rectangle.FromLTRB(pad, titleH, Width - pad, Height - footerH));
 
-            if (footerH > 0)
+            if (_footer.Length > 0)
             {
                 int y = Height - footerH;
                 using (var pen = new Pen(ApcTheme.C(c.GridLine))) g.DrawLine(pen, pad, y, Width - pad, y);
-                var footColor = _status == StatusKind.Warn || _status == StatusKind.Alarm ? ApcTheme.Status(_status) : ApcTheme.C(c.TextMuted);
+                var fs = _footerStatus ?? _status;
+                var footColor = fs == StatusKind.Warn || fs == StatusKind.Alarm ? ApcTheme.Status(fs) : ApcTheme.C(c.TextMuted);
                 TextClip.Draw(g, this, _footer, ApcTheme.GetFont(), new Rectangle(pad, y, Width - pad * 2, footerH), footColor,
                     flags | AlignFlag(_valueAlign));
             }
         }
 
-        private void DrawValue(Graphics g, Rectangle area, int sizeBase)
+        private void DrawValue(Graphics g, Rectangle area)
         {
+            int sizeBase = area.Height;
             if (_value.Trim().Length == 0) return;   // 값 없음(대기·통신 전)은 빈칸
             string text = _value;
             var muted = ApcTheme.C(ApcTheme.Current.Colors.TextMuted);
@@ -96,7 +105,7 @@ namespace APC.UI.Controls
                 int x = _valueAlign == HorizontalAlignment.Center ? area.Left + (area.Width - total) / 2
                       : _valueAlign == HorizontalAlignment.Right ? area.Right - total : area.Left;
                 int y = area.Top + (area.Height - vs.Height) / 2;
-                TextRenderer.DrawText(g, text, big, new Point(x, y), Cards.EmphasisColor(_status), noPad);
+                TextRenderer.DrawText(g, text, big, new Point(x, y), Cards.EmphasisColor(_valueStatus ?? _status), noPad);
                 if (us.Width > 0)   // 단위는 값의 아래쪽 기준선에 맞춘다
                     TextRenderer.DrawText(g, _unit, unitFont, new Point(x + vs.Width + gap, y + vs.Height - us.Height - S(2)), muted, noPad);
             }

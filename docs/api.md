@@ -1,4 +1,4 @@
-# APC.UI API (v1.7.3.0)
+# APC.UI API (v1.8.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -225,10 +225,12 @@
 
 `APC.UI.Controls` · class : Control
 
-현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸.
+현재값 카드: 제목 띠(그리드 헤더 그라데이션, ShowLamp면 오른쪽에 램프) + 큰 값·단위 + 아래 한 줄(기준·범위·수신 시각 등). 값 색은 Status로: 경고/알람만 상태색, 정지는 흐리게. 알람이면 굵은 알람색 테두리. Value가 비면 값·단위 모두 빈칸. 값이 두 개인 카드는 ValueStatus/FooterStatus로 값·Footer 글자색을 그 항목 판정대로 따로 준다(램프·테두리는 Status).
 - `ApcValueCard()`
 - `HorizontalAlignment ValueAlign { get; set; }`
 - `StatusKind Status { get; set; }`
+- `StatusKind? FooterStatus { get; set; }` — Footer 글자색만 따로 정할 때(Footer에 적은 보조 값이 정상인데 카드는 알람). null이면 Status.
+- `StatusKind? ValueStatus { get; set; }` — 큰 값 글자색만 따로 정할 때(값이 두 개인 카드: 카드는 습도 경고인데 온도 값은 정상). null이면 Status.
 - `bool ShowLamp { get; set; }`
 - `string Footer { get; set; }` — 아래 한 줄. 비우면 줄이 없다.
 - `string Title { get; set; }`

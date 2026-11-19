@@ -40,6 +40,12 @@ namespace APC.UI.Checks
                 card.DrawToBitmap(bmp, new Rectangle(Point.Empty, card.Size));
                 Check(bmp.GetPixel(1, card.Height / 2).ToArgb() == ApcTheme.Status(StatusKind.Alarm).ToArgb(), "card: alarm draws thick alarm border");
             }
+            // 같은 높이 카드는 Footer 유무와 관계없이 값이 같은 높이에 그려진다(한 줄 카드의 값이 들쭉날쭉하지 않게).
+            Check(ValueTop(new ApcValueCard { Value = "88" }) == ValueTop(new ApcValueCard { Value = "88", Footer = "NG / 검사 수" }), "card: value sits at same height with or without footer");
+            // 값이 두 개인 카드(온도 + Footer 습도): 카드 상태는 경고여도 정상인 주 값은 보통 글자색.
+            Check(!HasColor(new ApcValueCard { Value = "22.9", Status = StatusKind.Warn, ValueStatus = StatusKind.Run }, ApcTheme.Status(StatusKind.Warn), false), "card: ValueStatus overrides value color");
+            Check(HasColor(new ApcValueCard { Value = "22.9", Status = StatusKind.Warn }, ApcTheme.Status(StatusKind.Warn), false), "card: value follows Status when ValueStatus unset");
+            Check(!HasColor(new ApcValueCard { Footer = "습도 51.3 %RH · 정상", Status = StatusKind.Alarm, FooterStatus = StatusKind.Run }, ApcTheme.Status(StatusKind.Alarm), true), "card: FooterStatus overrides footer color");
             using (var tile = new ApcStatusTile { Status = StatusKind.Run, Text = "전처리" })
             using (var bmp = new Bitmap(tile.Width, tile.Height))
             {
@@ -47,6 +53,40 @@ namespace APC.UI.Checks
                 Check(bmp.GetPixel(0, tile.Height / 2).ToArgb() == ApcTheme.C(c.Border).ToArgb(), "tile: normal border when idle");
                 Check(tile.TabStop, "tile: reachable by Tab");
             }
+        }
+
+        private static Bitmap Draw(ApcValueCard card)
+        {
+            card.Size = new Size(ApcTheme.Px(300), ApcTheme.Px(150));
+            var bmp = new Bitmap(card.Width, card.Height);
+            card.DrawToBitmap(bmp, new Rectangle(Point.Empty, card.Size));
+            card.Dispose();
+            return bmp;
+        }
+
+        // 제목 띠 아래 ~ Footer 자리 위에서 진한 글자 픽셀이 처음 나오는 줄
+        private static int ValueTop(ApcValueCard card)
+        {
+            int titleH = ApcTheme.Px(36) + 2, bottom = card.Height - ApcTheme.Px(32);
+            using (var bmp = Draw(card))
+                for (int y = titleH; y < bottom; y++)
+                    for (int x = ApcTheme.Px(14); x < bmp.Width / 2; x++)
+                        if (bmp.GetPixel(x, y).GetBrightness() < 0.3f) return y;
+            return -1;
+        }
+
+        // 값 영역(footer=false) 또는 Footer 줄(footer=true) 안에 그 색 픽셀이 있나. 테두리는 피한다.
+        private static bool HasColor(ApcValueCard card, Color color, bool footer)
+        {
+            using (var bmp = Draw(card))
+            {
+                int split = bmp.Height - ApcTheme.Px(32);
+                int top = footer ? split + 2 : ApcTheme.Px(36) + 2, bottom = footer ? bmp.Height - ApcTheme.Px(4) : split - 1;
+                for (int y = top; y < bottom; y++)
+                    for (int x = ApcTheme.Px(14); x < bmp.Width - ApcTheme.Px(14); x++)
+                        if (bmp.GetPixel(x, y).ToArgb() == color.ToArgb()) return true;
+            }
+            return false;
         }
     }
 }
