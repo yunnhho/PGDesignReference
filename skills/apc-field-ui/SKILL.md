@@ -105,7 +105,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 버튼 | `ApcButton`(Normal·Primary·Danger) |
 | 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`, 열 제목 "상태"). 램프 색이 무엇인지 같은 행의 글 열로도 읽혀야 한다 — 그 열 제목은 "판정"·"내용"("상태"는 램프 열과 겹친다). 기준 이탈 값 셀은 `cell.Style.ForeColor = ApcTheme.Status(kind)` + 굵게(선택 행에서도 색이 유지된다) |
 | 읽기 전용 값 한 줄(현재 바코드·LOT·작업자) | `ApcTextBox { ReadOnly = true }`(회색 바탕) 또는 `ApcValueCard` |
-| 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status). 값 글자 크기는 카드 높이를 따른다 — 나란한 카드는 같은 높이로(`Columns()`·`AddContentRow`가 맞춘다). 값이 두 개(온도 + 습도)면 주 값은 `Value`, 보조 값은 `Footer`("습도 57.0 %RH · 경고"). `Status`(램프·테두리)는 둘 중 나쁜 쪽, `ValueStatus`·`FooterStatus`는 각 항목의 판정 — 안 주면 정상인 온도가 노란 글자로 나온다 |
+| 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status). 값 글자 크기는 카드 높이를 따른다 — 나란한 카드는 같은 높이로(`Columns()`·`AddContentRow`가 맞춘다). 값이 두 개(온도 + 습도)면 주 값은 `Value`, 보조 값은 `Footer`("습도 57.0 %RH · 경고"). `Status`(램프·테두리)는 둘 중 나쁜 쪽, `ValueStatus`·`FooterStatus`는 각 항목의 판정 — 안 주면 정상인 온도가 노란 글자로 나온다. Footer에 보조 값이 둘 이상(습도 · 파티클)이면 `FooterStatus` 대신 `SetFooterParts(new[]{"습도 43.8 %RH","파티클 4,210 개/m³"}, new[]{StatusKind.Run, StatusKind.Alarm})` — 항목마다 제 색으로 그린다 |
 | 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text=설비명·Status·StatusText, `Click`) |
 | OK/NG 판정 크게 | `ApcJudgePanel`(Text=큰 글자·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
 | 추이 그래프 | `ApcTrendChart`(`SetValues`, XLabels, Reference, UpperLimit/LowerLimit) |

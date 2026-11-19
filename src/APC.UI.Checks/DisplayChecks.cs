@@ -46,6 +46,15 @@ namespace APC.UI.Checks
             Check(!HasColor(new ApcValueCard { Value = "22.9", Status = StatusKind.Warn, ValueStatus = StatusKind.Run }, ApcTheme.Status(StatusKind.Warn), false), "card: ValueStatus overrides value color");
             Check(HasColor(new ApcValueCard { Value = "22.9", Status = StatusKind.Warn }, ApcTheme.Status(StatusKind.Warn), false), "card: value follows Status when ValueStatus unset");
             Check(!HasColor(new ApcValueCard { Footer = "습도 51.3 %RH · 정상", Status = StatusKind.Alarm, FooterStatus = StatusKind.Run }, ApcTheme.Status(StatusKind.Alarm), true), "card: FooterStatus overrides footer color");
+            // Footer 보조 값이 여러 개: 항목마다 제 색(정상 습도는 회색, 알람 파티클만 빨강).
+            var alarm = ApcTheme.Status(StatusKind.Alarm);
+            var parts = new ApcValueCard { Status = StatusKind.Alarm };
+            parts.SetFooterParts(new[] { "습도 43.8 %RH", "파티클 4,210" }, new[] { StatusKind.Run, StatusKind.Alarm });
+            Check(parts.Footer == "습도 43.8 %RH · 파티클 4,210", "card: SetFooterParts joins parts into Footer");
+            Check(HasColor(parts, alarm, true), "card: alarm footer part drawn in alarm color");
+            var normal = new ApcValueCard { Status = StatusKind.Alarm };
+            normal.SetFooterParts(new[] { "습도 43.8 %RH", "파티클 820" }, new[] { StatusKind.Run, StatusKind.Run });
+            Check(!HasColor(normal, alarm, true), "card: normal footer parts stay muted on alarm card");
             using (var tile = new ApcStatusTile { Status = StatusKind.Run, Text = "전처리" })
             using (var bmp = new Bitmap(tile.Width, tile.Height))
             {

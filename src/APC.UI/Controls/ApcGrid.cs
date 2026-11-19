@@ -133,11 +133,38 @@ namespace APC.UI.Controls
             if (Columns[e.ColumnIndex].ReadOnly) e.CellStyle.BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);
         }
 
+        // 셀 글자(TextRenderer)는 10pt=13.33px를 14px로 올려 그리고, 입력 칸(네이티브 TextBox)은 13px로 내려 그려
+        // 편집 중인 칸만 글자가 작고 위로 뜬다 → 입력 칸에는 같은 크기를 정수 px로 올린 글꼴을 준다.
+        private Font _editFont;
+
+        protected override void OnEditingControlShowing(DataGridViewEditingControlShowingEventArgs e)
+        {
+            base.OnEditingControlShowing(e);
+            if (e.Control is TextBox) e.CellStyle.Font = EditFont(e.CellStyle.Font ?? Font);   // 편집 전용 스타일 사본(셀 표시엔 영향 없음)
+        }
+
+        private Font EditFont(Font cell)
+        {
+            float dpi;
+            using (var g = CreateGraphics()) dpi = g.DpiY;
+            float px = (float)Math.Ceiling(cell.SizeInPoints * dpi / 72f);
+            if (_editFont == null || _editFont.Size != px || _editFont.Style != cell.Style || _editFont.Name != cell.Name)
+            {
+                if (_editFont != null) _editFont.Dispose();
+                _editFont = new Font(cell.FontFamily, px, cell.Style, GraphicsUnit.Pixel);
+            }
+            return _editFont;
+        }
+
         private void OnThemeChanged(object sender, EventArgs e) { ApplyTheme(); Invalidate(); }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) ApcTheme.Changed -= OnThemeChanged;
+            if (disposing)
+            {
+                ApcTheme.Changed -= OnThemeChanged;
+                if (_editFont != null) _editFont.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

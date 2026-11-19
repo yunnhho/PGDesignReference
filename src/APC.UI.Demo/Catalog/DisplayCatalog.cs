@@ -38,6 +38,9 @@ namespace APC.UI.Demo.Catalog
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "건조로 2 온도", Value = "176.4", Unit = "℃", Status = StatusKind.Alarm, ShowLamp = true, Footer = "상한 175.0 초과" });
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "냉각 존 풍량", Value = "", Unit = "m³/min", Status = StatusKind.Stop, ShowLamp = true, Footer = "연결 끊김" });
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "금일 생산", Value = "148", ValueAlign = HorizontalAlignment.Center });
+            var bay = new ApcValueCard { Height = S(130), Title = "BAY-08", Value = "22.2", Unit = "℃", Status = StatusKind.Alarm, ValueStatus = StatusKind.Run, ShowLamp = true };
+            bay.SetFooterParts(new[] { "습도 43.8 %RH", "파티클 4,210" }, new[] { StatusKind.Run, StatusKind.Alarm });   // 항목마다 제 색
+            cards.Controls.Add(bay);
             Body.Controls.Add(cards);
             Body.Controls.Add(Row(Caption("값 카드 (ApcValueCard)")));
 

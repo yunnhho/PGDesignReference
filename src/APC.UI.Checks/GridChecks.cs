@@ -22,6 +22,11 @@ namespace APC.UI.Checks
                 form.Show();
                 Application.DoEvents();
                 Check(g.CurrentCell != null && g.CurrentCell.ColumnIndex == 1 && g.CurrentCell.RowIndex == 0, "grid: input table starts on first editable cell, not read-only column");
+                g.BeginEdit(true);
+                Application.DoEvents();
+                var ec = g.EditingControl;
+                Check(ec != null && ec.Font.Unit == GraphicsUnit.Pixel && ec.Font.Size == (float)Math.Ceiling(g.Font.SizeInPoints * g.CreateGraphics().DpiY / 72f),
+                    "grid: edit box font rounded up to whole px like cell text (was " + (ec == null ? "none" : ec.Font.Size + " " + ec.Font.Unit) + ")");
             }
             using (var g = new FormatGrid())
             {

@@ -1,4 +1,4 @@
-# APC.UI API (v1.9.2.0)
+# APC.UI API (v1.10.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -240,6 +240,7 @@
 - `string Title { get; set; }`
 - `string Unit { get; set; }`
 - `string Value { get; set; }`
+- `void SetFooterParts(string[] texts, StatusKind[] statuses)` — Footer에 보조 값이 여러 개일 때(습도 · 파티클) 항목마다 제 판정 색으로 그린다. " · "로 이어 붙이고, Footer는 이은 글이 된다. FooterStatus 하나로는 정상인 항목까지 알람색이 되므로 이걸 쓴다. Footer를 다시 대입하면 항목 색은 지워진다.
 
 ## ScanEventArgs
 
