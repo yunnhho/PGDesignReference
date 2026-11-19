@@ -10,7 +10,7 @@ namespace APC.UI.Controls
     /// <summary>
     /// dialog 배치 헬퍼. 생성자에서 SetupDialog → AddFieldRow/AddGroup/AddContent/AddContentFill(위에서 아래 순서) → SetFooter.
     /// 치수는 ApcLayout이 정하고, 표시 직전(OnLoad) 한 번에 배치한다: 이름표 열 하나(가장 긴 이름표 폭), 입력칸 왼쪽 끝 통일,
-    /// 하단 [취소][확정] 오른쪽 끝, 높이는 내용으로 계산(Fill 내용이 있으면 SetupDialog 높이).
+    /// 하단 [확정][취소] 오른쪽(취소가 끝), 높이는 내용으로 계산(Fill 내용이 있으면 SetupDialog 높이).
     /// </summary>
     public partial class ApcForm
     {
@@ -105,7 +105,7 @@ namespace APC.UI.Controls
             _blocks.Add(new Block { Kind = BlockKind.Fill, Content = c });
         }
 
-        /// <summary>하단 버튼 줄: 오른쪽 [취소][확정](cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).</summary>
+        /// <summary>하단 버튼 줄: 오른쪽 [확정][취소](취소가 끝, cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).</summary>
         protected void SetFooter(ApcButton cancel, ApcButton confirm, params ApcButton[] left)
         {
             RequireSetup();
@@ -238,8 +238,10 @@ namespace APC.UI.Controls
 
             if (!hasFooter) return;
             int by = cb.Bottom - pad - btnH, gap = ApcTheme.Px(ApcLayout.ItemGap);
-            _footerConfirm.SetBounds(cb.Right - pad - btnW, by, btnW, btnH);
-            if (_footerCancel != null) _footerCancel.SetBounds(_footerConfirm.Left - gap - btnW, by, btnW, btnH);
+            // [확정][취소]: 취소가 오른쪽 끝
+            int right = cb.Right - pad - btnW;
+            if (_footerCancel != null) { _footerCancel.SetBounds(right, by, btnW, btnH); right -= gap + btnW; }
+            _footerConfirm.SetBounds(right, by, btnW, btnH);
             int lx = x;
             foreach (var l in _footerLeft)
             {

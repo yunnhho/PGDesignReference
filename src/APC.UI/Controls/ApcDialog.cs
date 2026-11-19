@@ -73,8 +73,9 @@ namespace APC.UI.Controls
             var cancel = new ApcButton { Text = "취소", Variant = ApcButtonVariant.Normal, DialogResult = DialogResult.Cancel, TabIndex = 0 };
             var ok = new ApcButton { Text = okText, Variant = okVariant, DialogResult = DialogResult.OK, TabIndex = 1 };
             var anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            ok.SetBounds(dlg.ClientSize.Width - pad - btnW, dlg.ClientSize.Height - pad - btnH, btnW, btnH);
-            cancel.SetBounds(ok.Left - (int)(8 * s) - btnW, ok.Top, btnW, btnH);
+            // [확정][취소]: 취소가 오른쪽 끝
+            cancel.SetBounds(dlg.ClientSize.Width - pad - btnW, dlg.ClientSize.Height - pad - btnH, btnW, btnH);
+            ok.SetBounds(cancel.Left - (int)(8 * s) - btnW, cancel.Top, btnW, btnH);
             ok.Anchor = cancel.Anchor = anchor;
 
             var label = new Label

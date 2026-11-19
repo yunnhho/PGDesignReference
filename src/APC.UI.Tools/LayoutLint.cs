@@ -9,7 +9,7 @@ namespace APC.UI.Tools
 {
     /// <summary>
     /// 배치가 끝난(화면에 띄운) 컨트롤 트리를 검사해 사람이 render PNG에서 지적하던 문제를 글로 돌려준다:
-    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [취소][확인] 순서, 전체 선택된 글자, Apc 표시 컨트롤의 말줄임(…).
+    /// 글자 잘림, 부모 밖 넘침·형제 겹침, 같은 줄 입력칸·버튼 위·높이 어긋남, 표준 컨트롤, 표 스크롤바·열 폭 쏠림, [확인][취소] 순서, 전체 선택된 글자, Apc 표시 컨트롤의 말줄임(…).
     /// APC.UI 내부(입력칸 속 TextBox, 표 스크롤바 등)는 들어가지 않는다. APC.UI 사본이 둘일 수 있어 형식은 이름으로 비교한다.
     /// </summary>
     public static partial class LayoutLint
@@ -207,15 +207,15 @@ namespace APC.UI.Tools
             return a.Top < b.Bottom && b.Top < a.Bottom && Math.Abs(ca - cb) < Math.Min(a.Height, b.Height) / 2;
         }
 
-        // [취소][확인]: 확정 버튼이 오른쪽 끝(ApcDialog와 같은 순서)
+        // [확인][취소]: 취소 버튼이 오른쪽 끝(ApcDialog와 같은 순서)
         private static void CheckOrder(Control a, Control b, string path, List<string> issues)
         {
             if (!Is(a, "ApcButton") || !Is(b, "ApcButton") || a.Top >= b.Bottom || b.Top >= a.Bottom) return;
             var cancel = a.Text == "취소" ? a : b.Text == "취소" ? b : null;
             var confirm = cancel == a ? b : a;
             if (cancel == null || !ConfirmTexts.Contains(confirm.Text)) return;
-            if (cancel.Left > confirm.Left)
-                issues.Add(path + ": 버튼 순서 [" + confirm.Text + "][취소] — [취소][" + confirm.Text + "]로");
+            if (cancel.Left < confirm.Left)
+                issues.Add(path + ": 버튼 순서 [취소][" + confirm.Text + "] — [" + confirm.Text + "][취소]로");
         }
 
         private static bool IsApc(Control c) { return c.GetType().Assembly.GetName().Name == ApcAssembly; }
