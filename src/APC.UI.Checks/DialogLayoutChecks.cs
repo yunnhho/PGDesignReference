@@ -22,6 +22,43 @@ namespace APC.UI.Checks
             Check(Throws(() => new FillDialog(400, true)), "dialog: second fill throws");
             CheckReviewFixes();
             CheckHelperGuards();
+            CheckContentRow();
+        }
+
+        private static void CheckContentRow()
+        {
+            using (var d = new RowDialog())
+            {
+                ShowOffscreen(d);
+                int gap = ApcTheme.Px(ApcLayout.ItemGap), pad = ApcTheme.Px(ApcLayout.Pad);
+                Check(d.A.Height == d.B.Height && d.A.Height == ApcTheme.Px(120) && d.A.Top == d.B.Top,
+                      "dialog: content row cells share the tallest height (" + d.A.Height + "," + d.B.Height + ")");
+                Check(d.B.Left - d.A.Right == gap && d.A.Left == d.ContentBounds.Left + pad && d.B.Right == d.ContentBounds.Right - pad,
+                      "dialog: content row spans width with ItemGap");
+                Check(d.C.Top - d.A.Bottom == ApcTheme.Px(ApcLayout.GroupGap), "dialog: second content row below first");
+                var issues = LayoutLint.Inspect(d);
+                foreach (var i in issues) Console.WriteLine("      " + i);
+                Check(issues.Count == 0, "lint: content row dialog clean");
+            }
+            Check(Throws<ArgumentException>(() => new RowDialog(true)), "dialog: empty content row throws");
+            var g = new ApcGroup();
+            Check(g.HeightFor(100) == g.Padding.Vertical + 100 && g.Padding.Top > g.Padding.Bottom, "group: HeightFor adds title band and padding");
+        }
+
+        private sealed class RowDialog : ApcForm
+        {
+            public readonly ApcValueCard A = new ApcValueCard { Title = "a", Height = ApcTheme.Px(120) };
+            public readonly ApcValueCard B = new ApcValueCard { Title = "b", Height = ApcTheme.Px(100) };
+            public readonly ApcValueCard C = new ApcValueCard { Title = "c", Height = ApcTheme.Px(120) };
+
+            public RowDialog(bool empty = false)
+            {
+                SetupDialog("t", 500);
+                if (empty) { AddContentRow(); return; }
+                AddContentRow(A, B);
+                AddContentRow(C, new ApcValueCard { Title = "d", Height = ApcTheme.Px(120) });
+                SetFooter(null, new ApcButton { Text = "닫기", DialogResult = DialogResult.OK });
+            }
         }
 
         private static void CheckHelperGuards()

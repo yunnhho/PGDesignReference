@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Drawing;
@@ -31,10 +32,15 @@ namespace APC.UI.Controls
             ApplyTheme();
         }
 
+        /// <summary>머리줄 + 행 rows개가 빈 줄·스크롤바 없이 들어가는 표 높이(배율 적용 px). dialog의 AddContent 표 높이에 쓴다.</summary>
+        public static int HeightForRows(int rows) { return HeaderHeight() + ApcTheme.MinHeight * Math.Max(0, rows) + 2; }
+
+        private static int HeaderHeight() { return (int)Math.Round(ApcTheme.MinHeight * 1.15); }
+
         private void ApplyTheme()
         {
             RowTemplate.Height = ApcTheme.MinHeight;
-            ColumnHeadersHeight = (int)Math.Round(ApcTheme.MinHeight * 1.15);
+            ColumnHeadersHeight = HeaderHeight();
             if (ApcTheme.Current == null) return;
 
             var c = ApcTheme.Current.Colors;
@@ -81,9 +87,19 @@ namespace APC.UI.Controls
 
         private void ClearAutoSelection()
         {
-            if (_userSelected || !ClearInitialSelection || !IsHandleCreated) return;
+            if (_userSelected || !IsHandleCreated) return;
+            if (!ClearInitialSelection) { SkipReadOnlyStart(); return; }
             ClearSelection();
             if (CurrentCell != null && !IsCurrentCellInEditMode) CurrentCell = null;
+        }
+
+        // 입력 표의 시작 칸이 읽기 전용 열(구역·슬롯 이름)에 잡히면 같은 행의 첫 입력 칸으로 옮긴다.
+        private void SkipReadOnlyStart()
+        {
+            var cell = CurrentCell;
+            if (ReadOnly || cell == null || !Columns[cell.ColumnIndex].ReadOnly || IsCurrentCellInEditMode) return;
+            var first = Columns.Cast<DataGridViewColumn>().Where(c => c.Visible && !c.ReadOnly).OrderBy(c => c.DisplayIndex).FirstOrDefault();
+            if (first != null) CurrentCell = Rows[cell.RowIndex].Cells[first.Index];
         }
 
         protected override void OnHandleCreated(EventArgs e) { base.OnHandleCreated(e); ClearAutoSelection(); }
@@ -110,15 +126,45 @@ namespace APC.UI.Controls
         protected override void OnCellFormatting(DataGridViewCellFormattingEventArgs e)
         {
             base.OnCellFormatting(e);
-            if (ReadOnly || ApcTheme.Current == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (ApcTheme.Current == null || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            // 셀에 상태색 글자(기준 이탈 강조)를 줬으면 선택 행에서도 그 색을 유지한다 — 선택 글자색에 묻히지 않게.
+            if (e.CellStyle.ForeColor != DefaultCellStyle.ForeColor) e.CellStyle.SelectionForeColor = e.CellStyle.ForeColor;
+            if (ReadOnly) return;
             if (Columns[e.ColumnIndex].ReadOnly) e.CellStyle.BackColor = ApcTheme.C(ApcTheme.Current.Colors.Background[0]);
+        }
+
+        // 셀 글자(TextRenderer)는 10pt=13.33px를 14px로 올려 그리고, 입력 칸(네이티브 TextBox)은 13px로 내려 그려
+        // 편집 중인 칸만 글자가 작고 위로 뜬다 → 입력 칸에는 같은 크기를 정수 px로 올린 글꼴을 준다.
+        private Font _editFont;
+
+        protected override void OnEditingControlShowing(DataGridViewEditingControlShowingEventArgs e)
+        {
+            base.OnEditingControlShowing(e);
+            if (e.Control is TextBox) e.CellStyle.Font = EditFont(e.CellStyle.Font ?? Font);   // 편집 전용 스타일 사본(셀 표시엔 영향 없음)
+        }
+
+        private Font EditFont(Font cell)
+        {
+            float dpi;
+            using (var g = CreateGraphics()) dpi = g.DpiY;
+            float px = (float)Math.Ceiling(cell.SizeInPoints * dpi / 72f);
+            if (_editFont == null || _editFont.Size != px || _editFont.Style != cell.Style || _editFont.Name != cell.Name)
+            {
+                if (_editFont != null) _editFont.Dispose();
+                _editFont = new Font(cell.FontFamily, px, cell.Style, GraphicsUnit.Pixel);
+            }
+            return _editFont;
         }
 
         private void OnThemeChanged(object sender, EventArgs e) { ApplyTheme(); Invalidate(); }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) ApcTheme.Changed -= OnThemeChanged;
+            if (disposing)
+            {
+                ApcTheme.Changed -= OnThemeChanged;
+                if (_editFont != null) _editFont.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

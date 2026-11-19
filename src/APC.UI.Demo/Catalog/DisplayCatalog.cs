@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -37,6 +38,9 @@ namespace APC.UI.Demo.Catalog
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "건조로 2 온도", Value = "176.4", Unit = "℃", Status = StatusKind.Alarm, ShowLamp = true, Footer = "상한 175.0 초과" });
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "냉각 존 풍량", Value = "", Unit = "m³/min", Status = StatusKind.Stop, ShowLamp = true, Footer = "연결 끊김" });
             cards.Controls.Add(new ApcValueCard { Height = S(130), Title = "금일 생산", Value = "148", ValueAlign = HorizontalAlignment.Center });
+            var bay = new ApcValueCard { Height = S(130), Title = "BAY-08", Value = "22.2", Unit = "℃", Status = StatusKind.Alarm, ValueStatus = StatusKind.Run, ShowLamp = true };
+            bay.SetFooterParts(new[] { "습도 43.8 %RH", "파티클 4,210" }, new[] { StatusKind.Run, StatusKind.Alarm });   // 항목마다 제 색
+            cards.Controls.Add(bay);
             Body.Controls.Add(cards);
             Body.Controls.Add(Row(Caption("값 카드 (ApcValueCard)")));
 
@@ -47,7 +51,7 @@ namespace APC.UI.Demo.Catalog
             tiles.Controls.Add(Tile("냉각 존", StatusKind.Stop, "정지 · 계획 정지"));
             tiles.Controls.Add(Tile("검사기", StatusKind.Info, "점검 중"));
             Body.Controls.Add(tiles);
-            Body.Controls.Add(Row(Caption("설비 타일 (ApcStatusTile): 마우스를 올리면 파란 테두리, 누르면 Click")));
+            Body.Controls.Add(Row(Caption("설비 타일 (ApcStatusTile): 마우스를 올리면 파란 테두리, 누르면 Click → 선택(Selected) 바탕")));
         }
 
         private static FlowLayoutPanel Flow()
@@ -58,7 +62,11 @@ namespace APC.UI.Demo.Catalog
         private ApcStatusTile Tile(string name, StatusKind status, string text)
         {
             var t = new ApcStatusTile { Text = name, Status = status, StatusText = text, Width = S(250) };
-            t.Click += (s, e) => Alarm.Push(name + " 상세 열기");
+            t.Click += (s, e) =>
+            {
+                foreach (var other in t.Parent.Controls.OfType<ApcStatusTile>()) other.Selected = other == t;
+                Alarm.Push(name + " 상세 열기");
+            };
             return t;
         }
 

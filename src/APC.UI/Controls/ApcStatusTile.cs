@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -33,6 +33,10 @@ namespace APC.UI.Controls
         [DefaultValue(StatusKind.Stop)] public StatusKind Status { get { return _status; } set { _status = value; Invalidate(); } }
 
         /// <summary>설비명 아래 한 줄(예: "가동 · 정상", "알람 · 온도 상한 초과").</summary>
+        private bool _selected;
+        /// <summary>선택 표시(바탕이 표 선택 행 색). 타일을 눌러 아래 카드·그래프가 그 설비를 보여 줄 때 그 타일 하나만 true.</summary>
+        [DefaultValue(false)] public bool Selected { get { return _selected; } set { _selected = value; Invalidate(); } }
+
         [DefaultValue("")] public string StatusText { get { return _statusText; } set { _statusText = value ?? ""; Invalidate(); } }
 
         /// <summary>설비명(굵게, 램프 오른쪽 윗줄).</summary>
@@ -45,7 +49,7 @@ namespace APC.UI.Controls
             var g = e.Graphics;
             if (ApcTheme.Current == null) { g.Clear(SystemColors.Control); return; }
             var c = ApcTheme.Current.Colors;
-            Cards.DrawFrame(g, Size, _status, _hover || Focused);
+            Cards.DrawFrame(g, Size, _status, _hover || Focused, _selected);
 
             int pad = S(14), lamp = Math.Min(S(32), Height - 2 * pad);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;

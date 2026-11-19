@@ -1,4 +1,4 @@
-# APC.UI API (v1.8.0.0)
+# APC.UI API (v1.10.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -82,6 +82,7 @@
 - `protected static Label FieldCaption(string text)` — 행 안 trailing 이름표(보통 굵기, 글자 폭).
 - `protected void AddContent(Control c)` — 표·판정판 등 자유 요소. 높이는 c.Height(ApcTheme.Px로 지정), 폭은 내용 폭.
 - `protected void AddContentFill(Control c)` — 남은 높이를 채우는 요소(그래프 등). SetupDialog에 높이를 줘야 하고 한 dialog에 하나만.
+- `protected void AddContentRow(params Control[] cells)` — 카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 c.Height)로. 칸 간격은 ApcLayout.ItemGap. 2×2는 두 번 부른다.
 - `protected void AddFieldRow(ApcGroup group, string caption, Control field, params Control[] trailing)` — 묶음 안 한 줄. 이름표 열은 묶음 밖 행과 같은 위치에 맞춘다.
 - `protected void AddFieldRow(string caption, Control field, params Control[] trailing)` — 이름표 + 입력칸 한 줄. trailing이 없으면 입력칸이 남은 폭을 채우고, 있으면 모두 자기 Width로 왼→오.
 - `protected void SetFooter(ApcButton cancel, ApcButton confirm, params ApcButton[] left)` — 하단 버튼 줄: 오른쪽 [취소][확정](cancel은 null 가능), 왼쪽 보조 버튼. Esc = 취소(없으면 확정).
@@ -95,6 +96,7 @@
 테마 스타일을 입힌 DataGridView. 헤더 그라데이션, 행 배경 한 색(번갈아 칠하지 않음), 행 전체 선택. 사용자가 표를 누르거나 키로 움직이기 전에는 첫 행이 저절로 선택되지 않는다(CurrentRow = null) — "선택한 행에 대해" 동작하는 버튼은 CurrentRow가 null이면 아무것도 하지 않게 둔다.
 - `ApcGrid()`
 - `bool ClearInitialSelection { get; set; }` — true(기본)면 사용자가 누르기 전엔 선택 행이 없다. 입력 표(스캔으로 칸을 채우는 dialog 등)처럼 앱이 CurrentCell을 정해 두고 바로 입력받아야 하면 false.
+- `static int HeightForRows(int rows)` — 머리줄 + 행 rows개가 빈 줄·스크롤바 없이 들어가는 표 높이(배율 적용 px). dialog의 AddContent 표 높이에 쓴다.
 
 ## ApcGroup
 
@@ -102,6 +104,7 @@
 
 제목 띠가 있는 묶음 상자(설정 dialog의 블록 등, 표준 GroupBox 대신). 제목 띠는 값 카드와 같은 그리드 헤더 그라데이션. 안에 넣는 컨트롤은 Padding(제목 띠 아래 + 여백) 안쪽에 배치된다 — Dock이나 FlowLayoutPanel(Dock=Fill)을 쓰면 된다.
 - `ApcGroup()`
+- `int HeightFor(int contentHeight)` — 안 내용 높이(배율 적용 px)를 담는 묶음 높이 = 제목 띠 + 위아래 여백 + 내용. 화면에서 Columns() 줄을 담으면 내용 = 줄 높이 합.
 - `string Text { get; set; }` — 제목 띠 글자.
 
 ## ApcHeaderBar
@@ -181,7 +184,8 @@
 설비 타일: 램프 + 설비명 + 상태 문구. 누르면 Click(상세 dialog 열기 등). 마우스를 올리거나 포커스면 파란 테두리, 알람이면 굵은 알람색 테두리. Tab으로 옮겨 Enter·Space로도 누른다.
 - `ApcStatusTile()`
 - `StatusKind Status { get; set; }`
-- `string StatusText { get; set; }` — 설비명 아래 한 줄(예: "가동 · 정상", "알람 · 온도 상한 초과").
+- `bool Selected { get; set; }` — 선택 표시(바탕이 표 선택 행 색). 타일을 눌러 아래 카드·그래프가 그 설비를 보여 줄 때 그 타일 하나만 true.
+- `string StatusText { get; set; }`
 - `string Text { get; set; }` — 설비명(굵게, 램프 오른쪽 윗줄).
 
 ## ApcTemplateView
@@ -236,6 +240,7 @@
 - `string Title { get; set; }`
 - `string Unit { get; set; }`
 - `string Value { get; set; }`
+- `void SetFooterParts(string[] texts, StatusKind[] statuses)` — Footer에 보조 값이 여러 개일 때(습도 · 파티클) 항목마다 제 판정 색으로 그린다. " · "로 이어 붙이고, Footer는 이은 글이 된다. FooterStatus 하나로는 정상인 항목까지 알람색이 되므로 이걸 쓴다. Footer를 다시 대입하면 항목 색은 지워진다.
 
 ## ScanEventArgs
 

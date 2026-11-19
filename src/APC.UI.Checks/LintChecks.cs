@@ -98,6 +98,13 @@ namespace APC.UI.Checks
                 g.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 p.Controls.Add(g);
             }).Any(i => i.Contains("절반 넘게")), "lint: wide centered short-value column");
+            Check(Lint(p =>
+            {
+                var g = new ApcGrid { Width = 440, Height = 200 };
+                g.Columns.Add(new ApcLampColumn()); g.Columns.Add("id", "구역"); g.Columns.Add("st", "상태");
+                foreach (DataGridViewColumn c in g.Columns) c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                p.Controls.Add(g);
+            }).Any(i => i.Contains("중복")), "lint: duplicate column header");
             using (var g = new ApcGrid())
                 Check(g.DefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter && g.ColumnHeadersDefaultCellStyle.Alignment == DataGridViewContentAlignment.MiddleCenter, "grid: cells and headers centered by default");
             Check(Lint(p => { p.Controls.Add(new ApcButton { Text = "취소", Width = 70 }); p.Controls.Add(new ApcButton { Text = "저장", Left = 80, Width = 70 }); }).Count == 0, "lint: clean row passes");

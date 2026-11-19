@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -45,12 +45,23 @@ namespace APC.UI.Tools
             try { view = (Control)ctor.Invoke(null); }
             catch (TargetInvocationException ex)
             {
-                throw new RenderException(type.FullName + " 생성 실패: " + ex.InnerException.Message, ex.InnerException);
+                throw new RenderException(type.FullName + " 생성 실패: " + ex.InnerException.Message + Where(ex.InnerException, asm), ex.InnerException);
             }
             using (view) return Draw(view, size ?? (IsFixedDialog(view) ? (Size?)null : new Size(1920, 1080)), issues);
         }
 
         // 크기를 바꿀 수 없는 폼(dialog)만 자기 크기로 그린다. 메인 창처럼 늘어나는 폼은 현장 기준 1920×1080.
+        // 예외가 난 앱 코드 위치(앱 어셈블리의 첫 프레임). pdb가 있으면 파일:줄까지.
+        public static string Where(Exception ex, Assembly app)
+        {
+            var frame = new System.Diagnostics.StackTrace(ex, true).GetFrames()?
+                .FirstOrDefault(f => f.GetMethod() != null && f.GetMethod().DeclaringType != null && f.GetMethod().DeclaringType.Assembly == app);
+            if (frame == null) return "";
+            var m = frame.GetMethod();
+            string file = frame.GetFileName();
+            return " (위치: " + m.DeclaringType.Name + "." + m.Name + (file != null ? " " + Path.GetFileName(file) + ":" + frame.GetFileLineNumber() : "") + ")";
+        }
+
         private static bool IsFixedDialog(Control view)
         {
             var form = view as Form;

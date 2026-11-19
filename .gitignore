@@ -5,3 +5,4 @@ obj/
 tools/node_modules/
 .superpowers/
 .remember/
+skill-test/**/build.log

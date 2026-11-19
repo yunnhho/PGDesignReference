@@ -14,7 +14,7 @@ namespace APC.UI.Controls
     /// </summary>
     public partial class ApcForm
     {
-        private enum BlockKind { Row, Group, Content, Fill, Title }
+        private enum BlockKind { Row, Group, Content, Fill, Title, Cells }
 
         private sealed class Block
         {
@@ -25,6 +25,7 @@ namespace APC.UI.Controls
             public ApcGroup Group;
             public readonly List<Block> Rows = new List<Block>();
             public Control Content;
+            public Control[] Cells;
         }
 
         private readonly List<Block> _blocks = new List<Block>();
@@ -82,6 +83,15 @@ namespace APC.UI.Controls
             c.Dock = DockStyle.None;   // ApcHeaderBar처럼 기본 Dock이 있는 컨트롤도 헬퍼가 둔 자리에
             Controls.Add(c);
             _blocks.Add(new Block { Kind = c is Label && _sectionTitles.Contains(c) ? BlockKind.Title : BlockKind.Content, Content = c });
+        }
+
+        /// <summary>카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 c.Height)로. 칸 간격은 ApcLayout.ItemGap. 2×2는 두 번 부른다.</summary>
+        protected void AddContentRow(params Control[] cells)
+        {
+            RequireSetup();
+            if (cells == null || cells.Length == 0) throw new ArgumentException("칸이 하나 이상 있어야 합니다.", "cells");
+            foreach (var c in cells) { c.Dock = DockStyle.None; c.Margin = Padding.Empty; Controls.Add(c); }
+            _blocks.Add(new Block { Kind = BlockKind.Cells, Cells = cells });
         }
 
         /// <summary>남은 높이를 채우는 요소(그래프 등). SetupDialog에 높이를 줘야 하고 한 dialog에 하나만.</summary>
@@ -213,6 +223,12 @@ namespace APC.UI.Controls
                             ry += fieldH + ApcTheme.Px(ApcLayout.RowGap);
                         }
                         break;
+                    case BlockKind.Cells:
+                        int cg = ApcTheme.Px(ApcLayout.ItemGap), n = b.Cells.Length;
+                        int cw = (w - cg * (n - 1)) / n;
+                        for (int k = 0; k < n; k++)   // 마지막 칸이 나머지 px를 가져 오른쪽 끝이 맞는다
+                            b.Cells[k].SetBounds(x + k * (cw + cg), y, k == n - 1 ? w - k * (cw + cg) : cw, h);
+                        break;
                     default:
                         b.Content.SetBounds(x, y, w, h);
                         break;
@@ -252,6 +268,7 @@ namespace APC.UI.Controls
                     int n = b.Rows.Count;
                     return b.Group.Padding.Vertical + n * fieldH + Math.Max(0, n - 1) * ApcTheme.Px(ApcLayout.RowGap);
                 case BlockKind.Fill: return 0;
+                case BlockKind.Cells: return b.Cells.Max(c => c.Height);
                 default: return b.Content.Height;
             }
         }

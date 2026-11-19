@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -38,7 +39,24 @@ namespace APC.UI.Controls
         [DefaultValue("")] public string Unit { get { return _unit; } set { _unit = value ?? ""; Invalidate(); } }
 
         /// <summary>아래 한 줄. 비우면 줄이 없다.</summary>
-        [DefaultValue("")] public string Footer { get { return _footer; } set { _footer = value ?? ""; Invalidate(); } }
+        [DefaultValue("")] public string Footer { get { return _footer; } set { _footer = value ?? ""; _parts = null; Invalidate(); } }
+
+        /// <summary>
+        /// Footer에 보조 값이 여러 개일 때(습도 · 파티클) 항목마다 제 판정 색으로 그린다. " · "로 이어 붙이고, Footer는 이은 글이 된다.
+        /// FooterStatus 하나로는 정상인 항목까지 알람색이 되므로 이걸 쓴다. Footer를 다시 대입하면 항목 색은 지워진다.
+        /// </summary>
+        public void SetFooterParts(string[] texts, StatusKind[] statuses)
+        {
+            if (texts == null || statuses == null || texts.Length != statuses.Length)
+                throw new ArgumentException("texts와 statuses는 같은 개수여야 합니다.");
+            _footer = string.Join(Sep, texts);
+            _parts = texts.Length == 0 ? null : new KeyValuePair<string, StatusKind>[texts.Length];
+            for (int i = 0; i < texts.Length; i++) _parts[i] = new KeyValuePair<string, StatusKind>(texts[i] ?? "", statuses[i]);
+            Invalidate();
+        }
+
+        private const string Sep = " · ";
+        private KeyValuePair<string, StatusKind>[] _parts;
 
         [DefaultValue(StatusKind.Run)] public StatusKind Status { get { return _status; } set { _status = value; Invalidate(); } }
 
@@ -79,11 +97,37 @@ namespace APC.UI.Controls
             {
                 int y = Height - footerH;
                 using (var pen = new Pen(ApcTheme.C(c.GridLine))) g.DrawLine(pen, pad, y, Width - pad, y);
-                var fs = _footerStatus ?? _status;
-                var footColor = fs == StatusKind.Warn || fs == StatusKind.Alarm ? ApcTheme.Status(fs) : ApcTheme.C(c.TextMuted);
-                TextClip.Draw(g, this, _footer, ApcTheme.GetFont(), new Rectangle(pad, y, Width - pad * 2, footerH), footColor,
-                    flags | AlignFlag(_valueAlign));
+                var rect = new Rectangle(pad, y, Width - pad * 2, footerH);
+                if (_parts != null) DrawFooterParts(g, rect, flags);
+                else TextClip.Draw(g, this, _footer, ApcTheme.GetFont(), rect, FooterColor(_footerStatus ?? _status), flags | AlignFlag(_valueAlign));
             }
+        }
+
+        private static Color FooterColor(StatusKind s)
+        {
+            return s == StatusKind.Warn || s == StatusKind.Alarm ? ApcTheme.Status(s) : ApcTheme.C(ApcTheme.Current.Colors.TextMuted);
+        }
+
+        // 항목을 이어 그린다. 전체 폭으로 정렬 위치를 잡고, 넘치면 남은 칸에서 말줄임(render 점검에 잡힌다).
+        private void DrawFooterParts(Graphics g, Rectangle rect, TextFormatFlags flags)
+        {
+            var font = ApcTheme.GetFont();
+            var measure = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine;
+            int total = TextRenderer.MeasureText(g, _footer, font, Size.Empty, measure).Width;
+            int x = total >= rect.Width || _valueAlign == HorizontalAlignment.Left ? rect.Left
+                  : _valueAlign == HorizontalAlignment.Center ? rect.Left + (rect.Width - total) / 2 : rect.Right - total;
+            var draw = flags | TextFormatFlags.NoPadding;
+            for (int i = 0; i < _parts.Length && x < rect.Right; i++)
+            {
+                if (i > 0) x = DrawPart(g, Sep, font, x, rect, FooterColor(StatusKind.Run), draw, measure);
+                x = DrawPart(g, _parts[i].Key, font, x, rect, FooterColor(_parts[i].Value), draw, measure);
+            }
+        }
+
+        private int DrawPart(Graphics g, string text, Font font, int x, Rectangle rect, Color color, TextFormatFlags draw, TextFormatFlags measure)
+        {
+            TextClip.Draw(g, this, text, font, Rectangle.FromLTRB(x, rect.Top, rect.Right, rect.Bottom), color, draw);
+            return x + TextRenderer.MeasureText(g, text, font, Size.Empty, measure).Width;
         }
 
         private void DrawValue(Graphics g, Rectangle area)
