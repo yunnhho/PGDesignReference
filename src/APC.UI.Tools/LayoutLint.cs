@@ -148,6 +148,27 @@ namespace APC.UI.Tools
             int fits = body / grid.RowTemplate.Height;
             if (grid.RowCount < fits)
                 issues.Add(NotePrefix + path + ": 표 아래가 빔(행 " + grid.RowCount + ", " + fits + "행까지 들어감) — 이력·목록이면 샘플 행을 " + fits + "개로, 설비 수처럼 정해진 목록이면 그대로");
+            int repeats = RepeatedRows(grid);
+            if (repeats >= MinRepeatedRows)
+                issues.Add(NotePrefix + path + ": 시각·ID만 다르고 나머지가 앞 행과 같은 행 " + repeats + "개(샘플이 되풀이로 보임) — 이력이면 설비·값·문구를 섞는다");
+        }
+
+        private const int MinRepeatedRows = 3;   // 우연히 겹치는 한두 행은 넘긴다
+
+        // 값이 모두 다른 열(시각·ID)을 빼고 나머지 칸이 앞 행과 똑같은 행 수.
+        // 측정값(소수) 열이 있는 표만 본다 — 모델·수량·판정처럼 원래 겹치는 값만 있는 표는 되풀이가 자연스럽다.
+        private static int RepeatedRows(DataGridView grid)
+        {
+            var rows = grid.Rows.Cast<DataGridViewRow>().Where(r => !r.IsNewRow).ToList();
+            Func<DataGridViewRow, DataGridViewColumn, string> cell = (r, c) => Convert.ToString(r.Cells[c.Index].Value);
+            var cols = grid.Columns.Cast<DataGridViewColumn>().Where(c => c.Visible)
+                .Where(c => rows.Select(r => cell(r, c)).Distinct().Count() < rows.Count)
+                .ToList();
+            decimal d;
+            bool measured = cols.Any(c => rows.Any(r => cell(r, c).Contains(".") && decimal.TryParse(cell(r, c).Split(' ')[0], out d)));
+            if (!measured) return 0;
+            var seen = new HashSet<string>();
+            return rows.Count(r => !seen.Add(string.Join("\u0001", cols.Select(c => Convert.ToString(r.Cells[c.Index].Value)).ToArray())));
         }
 
         private static void CheckSiblings(Control parent, List<Control> kids, string path, List<string> issues)

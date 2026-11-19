@@ -59,7 +59,8 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 - 맞는 템플릿이 없거나 추가 요청이 있으면 `ApcTemplateView`(헤더 + Body + 알람바) 위에 **기존 Apc 컨트롤로 새 배치**를 짠다.
 - `new-project.sh`가 만드는 `MainView`·`IMainViewSource`는 빈 틀(TODO)이다. 여기에 채운다. `MainForm.TitleText`도 화면 이름으로 바꾼다(기본값은 영문 프로젝트명).
 - **도킹 순서**: 같은 Dock끼리는 나중에 `Add`한 것이 바깥(위)에 온다. `Body`에는 Fill 컨트롤을 먼저 `Add`하고, Top 줄은 화면 아래쪽 것부터 위쪽 것 순서로 `Add`한다(또는 `Body.Controls.SetChildIndex(fill, 0)`).
-- 카드·타일·판정판을 한 줄에: `ApcTemplateView`의 `Columns(S(높이), cells)`(같은 폭) 또는 `Columns(S(높이), cells, new[] { 50f, 25f, 25f })`(퍼센트 폭). 칸 간격·줄 간격은 헬퍼가 정한다.
+- 카드·타일·판정판을 한 줄에: `ApcTemplateView`의 `Columns(S(높이), cells)`(같은 폭) 또는 `Columns(S(높이), cells, new[] { 50f, 25f, 25f })`(퍼센트 폭). 칸 간격·줄 간격은 헬퍼가 정한다. 한 줄은 **높이 + 12**를 차지한다(줄 아래 간격 포함) — `Columns()` 여러 줄을 Panel 하나에 담으면 그 Panel 높이는 `(S(높이) + S(12)) × 줄 수`.
+- `SectionTitle()`·`Caption()`은 Dock이 없는 Label이다. `Body`에 바로 넣을 때는 `Dock = DockStyle.Top`을 준다(안 주면 위 줄과 겹친다. 시연 두 차례 연속). `Row()` 안에 넣을 때는 그대로 둔다.
 - `ApcGrid`는 사용자가 누르기 전엔 선택 행이 없다(`CurrentRow == null`). "선택한 행" 버튼은 null이면 아무것도 하지 않게 한다.
 
 ### 4b. dialog
@@ -97,7 +98,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment, ▲/▼는 칸 안 오른쪽에 위아래로) / `ApcDateBox` |
 | 버튼 | `ApcButton`(Normal·Primary·Danger) |
 | 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`) |
-| 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status) |
+| 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status). 값이 두 개(온도 + 습도)면 주 값은 `Value`, 보조 값은 `Footer`("습도 57.0 %RH · 경고"). `Status`(램프·테두리)는 둘 중 나쁜 쪽, `ValueStatus`·`FooterStatus`는 각 항목의 판정 — 안 주면 정상인 온도가 노란 글자로 나온다 |
 | 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text=설비명·Status·StatusText, `Click`) |
 | OK/NG 판정 크게 | `ApcJudgePanel`(Text=큰 글자·SubText·Status: OK=Run, NG=Alarm, 대기=Stop) |
 | 추이 그래프 | `ApcTrendChart`(`SetValues`, XLabels, Reference, UpperLimit/LowerLimit) |
@@ -115,16 +116,17 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 |---|---|
 | 창 제목 | 화면 이름만(`MainForm.TitleText`, 예: "도장 라인 모니터링"). 고객사·버전 붙이지 않음 |
 | 날짜·시각 | 날짜 `yyyy-MM-dd`, 당일 이력 시각 `HH:mm:ss`, 여러 날에 걸친 이력 `yyyy-MM-dd HH:mm:ss` |
-| 소수 자리 | ℃·%RH·kN·bar·kPa·m/min·A·V → `0.0`, mm → `0.00`, 불량률·가동률 % → `0.0`, 수량 → `#,0`(정수). 카드 값·표·알람 문구·기준 문구 모두 같은 자리수 |
+| 소수 자리 | ℃·%RH·kN·bar·kPa·m/min·A·V·Pa·µA → `0.0`, mm → `0.00`, 불량률·가동률 % → `0.0`, 수량 → `#,0`(정수), 시간 설정(s·min) → 정수(측정한 사이클 타임 s는 `0.0`). 카드 값·표·알람 문구·기준 문구 모두 같은 자리수 |
 | 표 정렬 | `ApcGrid` 기본이 가운데(헤더 포함). 긴 글 열(알람 내용·비고·사유)만 `DefaultCellStyle.Alignment = MiddleLeft`. 숫자 열도 가운데 |
 | 표 열 폭 | 긴 글 열이 있으면 그 열 하나만 `AutoSizeMode = Fill`. 짧은 값 열(ID·시각·숫자·판정)뿐이면 램프 열 빼고 모두 Fill로 고르게 나눈다(한 열만 Fill이면 나머지가 오른쪽 끝으로 밀린다. render가 "표 폭 절반 넘게 차지"로 잡는다) |
 | 값 없음(대기·통신 전) | 빈칸(정지 설비라도 읽은 값이 있으면 그 값). `ApcValueCard.Value = ""`(값·단위 모두 안 그림), 표 셀은 `""`. `-`, `--`, `0` 쓰지 않음 |
-| 대기 중 직전 값 | 판정 화면이 대기(READY)인데 측정값 카드에 직전 검사 값을 남기면 `Footer`에 출처를 적는다(예: "직전 검사 CELL0260418 · 10:15:00"). 출처 없이 남기지 않는다 |
+| 대기 중 직전 값 | 판정 화면이 대기(READY)인데 측정값 카드에 직전 검사 값을 남기면 값을 남긴 카드마다 `Footer`에 출처를 적는다(예: "직전 검사 CELL0260418 · 10:15:00"). 출처 없이 남기지 않는다 |
+| 공정 상태 → 상태색 | 대기·정지·통신 끊김 = `Stop`, 가동·진행 중(시험 중·측정 중)·정상 완료(PASS·OK) = `Run`, 한계 근접·확인 필요 = `Warn`, 불량 판정(FAIL·NG)·설비 오류(인가 실패·통신 오류 등 작업이 멈추는 것) = `Alarm`, 설정 변경·교대 같은 기록 = `Info`. **알람바(`Alarm.Push`)는 늘 빨강**이라 거기 올리는 사건은 램프·헤더 요약도 `Alarm`이다(오류 램프는 노랑인데 알람바는 빨강이면 틀린 것) |
 | 상태 경계값 | 상·하한과 같은 값은 그 상태에 넣는다(경고 근접·한계 판정은 `>=`/`<=`). 상태 문구·램프·카드 색이 같은 판정 함수 하나를 쓴다. 같은 측정 항목(예: 사이클 타임)은 메인 타일·카드, 알람 이력, 상세 dialog 표에서 모두 그 함수 하나로 판정한다(이력에서 25.9 s가 경고인데 상세 표에서 26.3 s가 정상이면 틀린 것) |
 | 글꼴 | 테마 글꼴·`fontSize` 그대로(10). `new Font(...)`·`FontSize * 배수` 금지, 글자는 `ApcTheme.GetFont()`만. 굵게는 구획 제목(`SectionTitle`)·묶음 제목(`ApcGroup`)·값 강조에만 — 입력칸 앞 이름표(`Caption`, `AddFieldRow`)는 보통 굵기. 판정판·카드 큰 글자는 컨트롤이 정함 |
 | 단위 표기 | 입력은 이름표 괄호 `하중 상한 (kN)`, 표시는 `ApcValueCard.Unit`·표 열 제목 `최대 하중(kN)`. 값 칸 안에 단위를 붙이지 않음 |
 | 간격 | 숫자로 정하지 않는다. 화면은 `Columns()`·`Row()`(줄 사이 12), dialog는 4b 헬퍼(여백 16·행 사이 12·묶음 사이 16·버튼 110×40). 값은 `ApcLayout` |
-| 샘플 데이터 | 이력·목록 표는 표 높이만큼 행을 채운다. 행 수는 짐작하지 말고 첫 render가 알려 주는 수로 맞춘다("참고: 표 아래가 빔 … N개로", "표 세로 스크롤바 … N개로"). 설비 목록처럼 개수가 정해진 표는 그대로. 늘린 행은 같은 문구·같은 간격을 되풀이하지 않는다(설비·문구·값·시각 간격을 섞는다). 상태는 정상(Run) 위주에 그 화면에서 뜻이 있는 이상 상태를 섞는다(모니터링: Warn·Alarm·Stop 각각 하나 이상, 판정: NG(Alarm) 몇 건). 집계(금일 생산·OK·NG·불량률)는 서로 맞고 이력 행 수 이상 |
+| 샘플 데이터 | 이력·목록 표는 표 높이만큼 행을 채운다. 행 수는 짐작하지 말고 render가 알려 주는 수로 맞춘다("참고: 표 아래가 빔 … N개로", "표 세로 스크롤바 … N개로"). 겹침·넘침이 같이 나오면 그것부터 고치고 다시 render해서 나온 수를 쓴다(배치가 바뀌면 표 높이도 바뀐다). 설비 목록처럼 개수가 정해진 표는 그대로. 늘린 행은 같은 문구·같은 간격을 되풀이하지 않는다(설비·문구·값·시각 간격을 섞는다. 시각만 바꾼 복사 행이 3개 이상이면 render가 "참고: … 되풀이"로 알린다). 상태는 정상(Run) 위주에 그 화면에서 뜻이 있는 이상 상태를 섞는다(모니터링: Warn·Alarm·Stop 각각 하나 이상, 판정: NG(Alarm) 몇 건). 집계(금일 생산·OK·NG·불량률)는 서로 맞고 이력 행 수 이상 |
 
 ## 5. 새 그림이 필요할 때만
 

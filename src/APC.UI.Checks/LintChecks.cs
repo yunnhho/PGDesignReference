@@ -77,6 +77,19 @@ namespace APC.UI.Checks
                 .Any(i => i.Contains("말줄임")), "lint: ellipsized tile status text");
             Check(!Lint(p => p.Controls.Add(new ApcStatusTile { Text = "사출기 3", StatusText = "경고", Width = 160, Height = 80 })).Any(i => i.Contains("말줄임")), "lint: fitting tile text passes");
             CheckGridFitsMatchesScrollbar();
+            // 이력 샘플: 시각만 다르고 나머지가 같은 행이 되풀이되면 참고로 알린다(C 시연: 19행 중 7쌍).
+            Func<string[][], List<string>> lintHistory = rows => Lint(p =>
+            {
+                var g = new ApcGrid { Dock = DockStyle.Fill, ReadOnly = true };
+                g.Columns.Add("t", "시각"); g.Columns.Add("s", "센서"); g.Columns.Add("v", "값");
+                foreach (var r in rows) g.Rows.Add(r);
+                p.Controls.Add(g);
+            });
+            var repeated = new[] { new[] { "14:52", "A-06", "24.6" }, new[] { "14:41", "B-01", "38.9" }, new[] { "14:30", "A-02", "24.3" }, new[] { "14:20", "B-04", "42.5" },
+                                   new[] { "13:10", "A-06", "24.6" }, new[] { "12:55", "B-01", "38.9" }, new[] { "12:31", "A-02", "24.3" }, new[] { "11:48", "B-04", "42.5" } };
+            Check(lintHistory(repeated).Any(i => LayoutLint.IsNote(i) && i.Contains("되풀이")), "lint: repeated sample rows noted");
+            var varied = new[] { new[] { "14:52", "A-06", "24.6" }, new[] { "14:41", "B-01", "38.9" }, new[] { "14:30", "A-06", "24.1" }, new[] { "14:20", "B-04", "42.5" }, new[] { "13:10", "A-02", "24.6" } };
+            Check(!lintHistory(varied).Any(i => i.Contains("되풀이")), "lint: varied sample rows pass");
             Check(Lint(p =>
             {
                 var g = new ApcGrid { Width = 440, Height = 200 };
