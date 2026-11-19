@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Drawing;
@@ -31,10 +31,15 @@ namespace APC.UI.Controls
             ApplyTheme();
         }
 
+        /// <summary>머리줄 + 행 rows개가 빈 줄·스크롤바 없이 들어가는 표 높이(배율 적용 px). dialog의 AddContent 표 높이에 쓴다.</summary>
+        public static int HeightForRows(int rows) { return HeaderHeight() + ApcTheme.MinHeight * Math.Max(0, rows) + 2; }
+
+        private static int HeaderHeight() { return (int)Math.Round(ApcTheme.MinHeight * 1.15); }
+
         private void ApplyTheme()
         {
             RowTemplate.Height = ApcTheme.MinHeight;
-            ColumnHeadersHeight = (int)Math.Round(ApcTheme.MinHeight * 1.15);
+            ColumnHeadersHeight = HeaderHeight();
             if (ApcTheme.Current == null) return;
 
             var c = ApcTheme.Current.Colors;

@@ -132,7 +132,7 @@ namespace APC.UI.Tools
             if (above.Count == 0) return;
             int gap = top - above.Max(l => l.Value.Bottom), want = theme.Px(GroupGap);
             if (gap > want + Tol)
-                issues.Add(path + ": 하단 버튼 위 빈 공간 " + gap + "px(기준 " + want + ") — SetupDialog 높이 0(자동) 또는 AddContentFill");
+                issues.Add(path + ": 하단 버튼 위 빈 공간 " + gap + "px(기준 " + want + ") — SetupDialog 높이 0(자동) 또는 AddContentFill. 카드 격자는 AddContentRow(직접 짠 패널은 자식 Margin이 빈 공간을 만든다)");
             else if (gap < want - Tol)
                 issues.Add(path + ": 하단 버튼 위 간격 " + gap + "px(기준 " + want + ")");
         }

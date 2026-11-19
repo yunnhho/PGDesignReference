@@ -28,6 +28,9 @@ namespace APC.UI.Controls
 
         internal int TitleHeight { get { return ApcTheme.Px(BaseTitleH); } }
 
+        /// <summary>안 내용 높이(배율 적용 px)를 담는 묶음 높이 = 제목 띠 + 위아래 여백 + 내용. 화면에서 Columns() 줄을 담으면 내용 = 줄 높이 합.</summary>
+        public int HeightFor(int contentHeight) { return Padding.Vertical + contentHeight; }
+
         private void ApplyPadding()
         {
             int p = ApcTheme.Px(BasePad);

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -47,7 +48,7 @@ namespace APC.UI.Demo.Catalog
             tiles.Controls.Add(Tile("냉각 존", StatusKind.Stop, "정지 · 계획 정지"));
             tiles.Controls.Add(Tile("검사기", StatusKind.Info, "점검 중"));
             Body.Controls.Add(tiles);
-            Body.Controls.Add(Row(Caption("설비 타일 (ApcStatusTile): 마우스를 올리면 파란 테두리, 누르면 Click")));
+            Body.Controls.Add(Row(Caption("설비 타일 (ApcStatusTile): 마우스를 올리면 파란 테두리, 누르면 Click → 선택(Selected) 바탕")));
         }
 
         private static FlowLayoutPanel Flow()
@@ -58,7 +59,11 @@ namespace APC.UI.Demo.Catalog
         private ApcStatusTile Tile(string name, StatusKind status, string text)
         {
             var t = new ApcStatusTile { Text = name, Status = status, StatusText = text, Width = S(250) };
-            t.Click += (s, e) => Alarm.Push(name + " 상세 열기");
+            t.Click += (s, e) =>
+            {
+                foreach (var other in t.Parent.Controls.OfType<ApcStatusTile>()) other.Selected = other == t;
+                Alarm.Push(name + " 상세 열기");
+            };
             return t;
         }
 

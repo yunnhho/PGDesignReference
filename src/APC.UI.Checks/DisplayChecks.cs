@@ -52,6 +52,10 @@ namespace APC.UI.Checks
                 tile.DrawToBitmap(bmp, new Rectangle(Point.Empty, tile.Size));
                 Check(bmp.GetPixel(0, tile.Height / 2).ToArgb() == ApcTheme.C(c.Border).ToArgb(), "tile: normal border when idle");
                 Check(tile.TabStop, "tile: reachable by Tab");
+                Check(bmp.GetPixel(4, 4).ToArgb() == Color.White.ToArgb(), "tile: white background when not selected");
+                tile.Selected = true;
+                tile.DrawToBitmap(bmp, new Rectangle(Point.Empty, tile.Size));
+                Check(bmp.GetPixel(4, 4).ToArgb() == ApcTheme.C(c.GridSelected).ToArgb(), "tile: selected uses grid selection background");
             }
         }
 
