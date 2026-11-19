@@ -20,7 +20,7 @@ Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/
 3. `Main`에서 폼을 띄우기 전에 `ApcTheme.Load(@"...\themes\<고객사>")`를 호출한다. `ThemeException`이 나면 메시지에 파일과 항목이 적혀 있다.
 4. 폼은 `ApcForm`을 상속하고 표준 입력·표시 컨트롤 대신 Apc 컨트롤을 쓴다. 삭제 같은 되돌릴 수 없는 동작 앞에는 `ApcDialog.Confirm(this, "...")`, 저장 확인은 `ApcDialog.Confirm(this, "...", "저장", ApcButtonVariant.Primary)`, 입력 오류 안내는 `ApcDialog.Alert(this, "...")`.
    - 입력: `ApcButton` / `ApcTextBox` / `ApcScanBox`(바코드) / `ApcComboBox` / `ApcNumericBox` / `ApcDateBox`
-   - 표시: `ApcGrid` + `ApcLampColumn` / `ApcLamp` / `ApcGroup`(설정 묶음) / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
+   - 표시: `ApcGrid` + `ApcLampColumn`(램프, `ApcLampValue`면 램프+문구) + `ApcIconColumn`(행 동작 아이콘) / `ApcLamp` / `ApcGroup`(설정 묶음) / `ApcValueCard`(현재값) / `ApcStatusTile`(설비, 클릭) / `ApcJudgePanel`(OK·NG) / `ApcTrendChart`(추이) / `ApcHeaderBar` / `ApcAlarmBar`
    - `Label`과 배치용 패널(`Panel`, `FlowLayoutPanel`, `TableLayoutPanel`)은 표준 그대로 쓴다.
 5. 앱 매니페스트에 `<dpiAware>true</dpiAware>`를 넣는다(`src/APC.UI.Demo/app.manifest` 참고).
 
@@ -29,6 +29,7 @@ Claude Code 스킬: `skills/apc-field-ui/SKILL.md`가 원본이다. `bash tools/
 | 바꿀 것 | 방법 |
 |---|---|
 | 색·폰트·스캔 설정 | `themes/<고객사>/theme.json` 수정. 상태색(run/warn/alarm/stop/info)은 **명도만** 바꿀 수 있고 색상을 바꾸면 로드가 거부된다. |
+| 1.12에서 추가된 아이콘 | 1.12 이전에 만든 `themes/<고객사>`에는 `icon_play_*`, `icon_reset_*` PNG가 없다. `ApcIconColumn`을 쓰려면 `themes/default/assets/icon_*.png`를 복사한다. |
 | 로고 | `themes/<고객사>/assets/logo_apcsoft@1x.png` 교체(파일명은 `theme.json`의 `logo` 값). `@1.5x`, `@2x`도 넣으면 고배율에서 선명해진다. |
 | 버튼·램프·창 버튼 이미지 | 바꿀 SVG만 `assets-src/<고객사>/`에 복사해 고친 뒤:<br>`node tools/render-assets.mjs --out themes/<고객사>/assets --override assets-src/<고객사>` |
 

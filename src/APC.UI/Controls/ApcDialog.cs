@@ -65,6 +65,7 @@ namespace APC.UI.Controls
                 TitleText = "확인",
                 Resizable = false,
                 MinimizeBox = false,
+                ShowLogo = false,
                 ShowInTaskbar = false,
                 StartPosition = FormStartPosition.CenterParent,
                 ClientSize = new Size((int)(420 * s), (int)(190 * s)),
