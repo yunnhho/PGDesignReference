@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -9,12 +9,12 @@ using APC.UI.Theming;
 namespace APC.UI.Demo.Templates
 {
     /// <summary>
-    /// references/FailureAnalysis.png 재구성: 설비군 탭 + 시험 모드 안내 + 시계, 2단 헤더 그리드(B1/B2/상태 묶음),
-    /// 행 안의 전송·초기화 버튼, 상태 램프 + 문구.
+    /// 연마기 불량 방지 시스템(references/FailureAnalysis.png → 현장 수정본) 재구성: 설비군 탭 + 시험 모드 안내 + 시계,
+    /// 2단 헤더 그리드(B1/B2 묶음)가 화면 폭을 채움, 행 동작은 아이콘 열(ApcIconColumn: 할 수 없으면 회색), 상태는 램프 + 문구 한 칸(ApcLampValue).
     /// </summary>
     internal sealed class FailureAnalysisView : ApcTemplateView
     {
-        private const int ColSend = 11, ColReset = 12, ColLamp = 13, ColStatusText = 14;
+        private const int ColCurrent = 9, ColSend = 11, ColReset = 12, ColStatus = 13;
         private static readonly string[] Groups = { "저속 연마기 ST-GR-01~03", "저속 연마기 ST-GR-04~06", "고속 연마기 ST-GB-01~08" };
 
         private readonly GroupHeaderGrid _grid = new GroupHeaderGrid { Dock = DockStyle.Fill, ReadOnly = true };
@@ -39,7 +39,14 @@ namespace APC.UI.Demo.Templates
             tabRow.Controls.Add(testMode);
 
             var settings = Button("설정", ApcButtonVariant.Normal, 80);
-            _clock.Margin = new Padding(0, S(8), S(12), 0);
+            // 시계: 어두운 상자에 굵은 흰 글자(멀리서도 읽히게). 폭은 글자 기준 고정(초가 바뀌어도 흔들리지 않게)
+            _clock.AutoSize = false;
+            _clock.Size = new Size(S(200), S(ApcLayout.FieldHeight));
+            _clock.TextAlign = ContentAlignment.MiddleCenter;
+            _clock.Font = ApcTheme.GetFont(FontStyle.Bold);
+            _clock.BackColor = ApcTheme.C(ApcTheme.Current.Colors.Header[1]);
+            _clock.ForeColor = ApcTheme.C(ApcTheme.Current.Colors.TextInverse);
+            _clock.Margin = new Padding(0, 0, S(ApcLayout.ItemGap), 0);
             var right = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Color.Transparent };
             right.Controls.Add(_clock);
             right.Controls.Add(settings);
@@ -73,21 +80,27 @@ namespace APC.UI.Demo.Templates
             _grid.Columns.Add("target", "운전목표시간");
             _grid.Columns.Add("current", "현재운전시간");
             _grid.Columns.Add("rpm", "RPM");
-            _grid.Columns.Add("send", "전송");
-            _grid.Columns.Add("reset", "초기화");
-            _grid.Columns.Add(new ApcLampColumn { HeaderText = "" });
-            _grid.Columns.Add("status", "");
+            _grid.Columns.Add(new ApcIconColumn { Name = "send", HeaderText = "전송", IconName = "icon_play" });
+            _grid.Columns.Add(new ApcIconColumn { Name = "reset", HeaderText = "초기화", IconName = "icon_reset" });
+            _grid.Columns.Add(new ApcLampColumn { Name = "status", HeaderText = "상태" });
 
-            // 1920 폭 기준 합계 ≈ 1600px. 좁은 창에서는 가로 스크롤(설비명은 고정 컬럼으로 남음).
-            int[] widths = { 44, 230, 230, 140, 50, 230, 140, 50, 100, 100, 60, 64, 64, 36, 90 };
-            for (int i = 0; i < widths.Length; i++) _grid.Columns[i].Width = S(widths[i]);
-            _grid.Columns["name"].Frozen = true;
-            foreach (DataGridViewColumn c in _grid.Columns) c.SortMode = DataGridViewColumnSortMode.NotSortable;
-            _grid.Columns["no"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            // 짧은 값 열은 고정 폭, 설비명·SPEC·LOT(긴 코드)가 남은 폭을 비율로 나눠 화면 폭을 채운다(오른쪽 빈 공간·코드 잘림 없음).
+            int[] fixedW = { 50, 0, 0, 0, 56, 0, 0, 56, 130, 130, 80, 72, 72, 130 };
+            float[] weights = { 0, 30, 26, 16, 0, 26, 16, 0, 0, 0, 0, 0, 0, 0 };
+            for (int i = 0; i < fixedW.Length; i++)
+            {
+                var col = _grid.Columns[i];
+                col.SortMode = DataGridViewColumnSortMode.NotSortable;
+                if (fixedW[i] > 0) { col.Width = S(fixedW[i]); continue; }
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                col.FillWeight = weights[i];
+            }
+            _grid.RowTemplate.Height = S(34);   // 24행이 1080 화면에 스크롤 없이, 멀리서도 읽히는 높이
+            foreach (var name in new[] { "target", "current", "rpm" })
+                _grid.Columns[name].DefaultCellStyle.Font = ApcTheme.GetFont(FontStyle.Bold);   // 작업자가 보는 값 강조
 
             _grid.ColumnGroups.Add(new ColumnGroup("B1", 2, 4));
             _grid.ColumnGroups.Add(new ColumnGroup("B2", 5, 7));
-            _grid.ColumnGroups.Add(new ColumnGroup("상태", ColLamp, ColStatusText));
         }
 
         private void SelectGroup(int index)
@@ -108,15 +121,22 @@ namespace APC.UI.Demo.Templates
                         _grid.Rows.Add(SampleRow(no, name));
                     }
 
-            int alarms = 0, offline = 0;
+            int alarms = 0, warns = 0, waiting = 0, offline = 0;
             foreach (DataGridViewRow r in _grid.Rows)
             {
-                var k = (StatusKind)r.Cells[ColLamp].Value;
-                if (k == StatusKind.Alarm) { alarms++; Alarm.Push(r.Cells[1].Value + ": " + r.Cells[ColStatusText].Value); }
-                if (k == StatusKind.Stop) offline++;
+                var v = (ApcLampValue)r.Cells[ColStatus].Value;
+                if (v.Status == StatusKind.Alarm) { alarms++; Alarm.Push(r.Cells[1].Value + ": " + v.Text); }
+                else if (v.Status == StatusKind.Warn) warns++;
+                else if (v.Text == "대기") waiting++;
+                else if (v.Text == "끊김") offline++;
             }
-            Header.Status = alarms > 0 ? StatusKind.Alarm : StatusKind.Run;
-            Header.StatusText = Groups[index] + " · 알람 " + alarms + " · 끊김 " + offline;
+            Header.Status = alarms > 0 ? StatusKind.Alarm : warns > 0 ? StatusKind.Warn : offline + waiting > 0 ? StatusKind.Stop : StatusKind.Run;
+            var parts = new List<string> { Groups[index] };
+            if (alarms > 0) parts.Add("알람 " + alarms);
+            if (warns > 0) parts.Add("경고 " + warns);
+            if (waiting > 0) parts.Add("대기 " + waiting);
+            if (offline > 0) parts.Add("끊김 " + offline);
+            Header.StatusText = string.Join(" · ", parts);
         }
 
         /// <summary>앞쪽 몇 행만 가동 데이터, 나머지는 끊김 — 원본 캡처(전부 끊김)보다 상태 표현을 보여주기 위해.</summary>
@@ -127,7 +147,7 @@ namespace APC.UI.Demo.Templates
                 case 1: return Row(no, name, "Q3225X7S106K500ARLNN01F", "P052609404712", "2", "S3216X5R106K500NRINN02F", "M052610084612", "1", "02:00:00", "01:12:40", "370", StatusKind.Run, "가동");
                 case 2: return Row(no, name, "Q2012X7R475K250NRENN03F", "P052610056015", "1", "", "", "", "01:30:00", "01:28:05", "370", StatusKind.Warn, "종료 임박");
                 case 3: return Row(no, name, "S2012X5R226M250NRENN03F", "S052607407714", "1", "", "", "", "02:00:00", "00:41:12", "352", StatusKind.Alarm, "RPM 이탈");
-                case 4: return Row(no, name, "", "", "", "", "", "", "", "", "", StatusKind.Info, "대기");
+                case 4: return Row(no, name, "", "", "", "", "", "", "", "", "", StatusKind.Stop, "대기");
                 default: return Row(no, name, "", "", "", "", "", "", "", "", "", StatusKind.Stop, "끊김");
             }
         }
@@ -135,22 +155,23 @@ namespace APC.UI.Demo.Templates
         private static object[] Row(int no, string name, string spec1, string lot1, string barrel1, string spec2, string lot2, string barrel2,
             string target, string current, string rpm, StatusKind status, string statusText)
         {
-            return new object[] { no, name, spec1, lot1, barrel1, spec2, lot2, barrel2, target, current, rpm, "▶", "↻", status, statusText };
+            // 전송·초기화: LOT가 들어간 행만 누를 수 있다(파란 아이콘), 빈 행·끊김은 회색
+            bool hasLot = lot1.Length > 0 || lot2.Length > 0;
+            return new object[] { no, name, spec1, lot1, barrel1, spec2, lot2, barrel2, target, current, rpm, hasLot, hasLot, new ApcLampValue(status, statusText) };
         }
 
         private void OnCellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
             var row = _grid.Rows[e.RowIndex];
-            bool offline = (StatusKind)row.Cells[ColLamp].Value == StatusKind.Stop;
+            if (!ApcIconColumn.IsEnabled(row.Cells[e.ColumnIndex])) return;   // 회색 아이콘은 눌러도 아무 일 없음
             if (e.ColumnIndex == ColSend)
             {
-                if (offline) Alarm.Push(row.Cells[1].Value + ": 끊김 상태라 전송할 수 없습니다");
-                else Header.StatusText = row.Cells[1].Value + " 작업 조건 전송됨";
+                row.Cells[ColStatus].Value = new ApcLampValue(StatusKind.Run, "전송됨");
             }
             else if (e.ColumnIndex == ColReset && ApcDialog.Confirm(FindForm(), row.Cells[1].Value + "의 운전 시간을 초기화할까요?"))
             {
-                row.Cells[9].Value = "00:00:00";
+                row.Cells[ColCurrent].Value = "00:00:00";
             }
         }
 
@@ -170,7 +191,7 @@ namespace APC.UI.Demo.Templates
         }
 
         /// <summary>
-        /// 2단 헤더(묶음 제목 + 하위 컬럼) + 행 안의 이미지 버튼 셀(전송·초기화).
+        /// 2단 헤더(묶음 제목 + 하위 컬럼).
         /// ponytail: 데모 전용. 다른 현장 프로그램에서도 필요해지면 ApcGrid로 올린다.
         /// </summary>
         private sealed class GroupHeaderGrid : ApcGrid
@@ -207,18 +228,6 @@ namespace APC.UI.Demo.Templates
                     e.Handled = true;
                     return;
                 }
-                if (e.RowIndex >= 0 && (e.ColumnIndex == ColSend || e.ColumnIndex == ColReset))
-                {
-                    e.Paint(e.CellBounds, DataGridViewPaintParts.Background | DataGridViewPaintParts.Border | DataGridViewPaintParts.SelectionBackground);
-                    var img = ApcTheme.GetImage("btn_normal_normal");
-                    var r = Rectangle.Inflate(e.CellBounds, -S(8), -S(3));
-                    var s = ApcTheme.Current.ButtonSlice;
-                    NineSlice.Draw(e.Graphics, img, r, new Padding(s[0], s[1], s[2], s[3]), ApcTheme.ImageScale(img));
-                    TextRenderer.DrawText(e.Graphics, Convert.ToString(e.Value), ApcTheme.GetFont(FontStyle.Bold), r, ApcTheme.C(ApcTheme.Current.Colors.Text),
-                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-                    e.Handled = true;
-                    return;
-                }
                 if (e.RowIndex == -1 && e.ColumnIndex >= 0) e.CellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 base.OnCellPainting(e);
             }
@@ -248,8 +257,6 @@ namespace APC.UI.Demo.Templates
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 }
             }
-
-            private static int S(int px) { return (int)Math.Round(px * ApcTheme.Scale); }
         }
     }
 }

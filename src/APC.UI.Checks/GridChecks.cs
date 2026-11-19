@@ -11,6 +11,24 @@ namespace APC.UI.Checks
         private static void RunGridChecks()
         {
             using (var g = new ApcGrid())
+            {
+                var icon = new ApcIconColumn { IconName = "icon_reset" };
+                var lamp = new ApcLampColumn();
+                g.Columns.Add(icon); g.Columns.Add(lamp);
+                g.Rows.Add(true, new ApcLampValue(StatusKind.Warn, "종료 임박"));
+                g.Rows.Add(false, StatusKind.Run);
+                g.Rows.Add(null, null);
+                var ic0 = (ApcIconCell)g.Rows[0].Cells[0];
+                Check(ic0.ImageNameFor(true) == "icon_reset_normal" && ic0.ImageNameFor(false) == "icon_reset_disabled" && ic0.ImageNameFor(null) == null, "grid: icon column image per enabled state");
+                Check(ApcIconColumn.IsEnabled(g.Rows[0].Cells[0]) && !ApcIconColumn.IsEnabled(g.Rows[1].Cells[0]) && !ApcIconColumn.IsEnabled(g.Rows[2].Cells[0]), "grid: icon cell enabled only when value true");
+                Check(((ApcIconColumn)icon.Clone()).IconName == "icon_reset", "grid: icon column clone keeps IconName");
+                var lc = (ApcLampCell)g.Rows[0].Cells[1];
+                Check(lc.ImageNameFor(new ApcLampValue(StatusKind.Warn, "x")) == "lamp_warn" && lc.ImageNameFor(StatusKind.Run) == "lamp_run", "grid: lamp column accepts StatusKind and ApcLampValue");
+                Check(new ApcLampValue(StatusKind.Run, "b").CompareTo(new ApcLampValue(StatusKind.Alarm, "a")) < 0
+                      && new ApcLampValue(StatusKind.Run, "a").CompareTo(new ApcLampValue(StatusKind.Run, "b")) < 0, "grid: lamp value sorts by status then text");
+                Check(g.CellBorderStyle == DataGridViewCellBorderStyle.Single && g.GridColor != ApcTheme.C(ApcTheme.Current.Colors.GridLine), "grid: vertical lines with visible line color");
+            }
+            using (var g = new ApcGrid())
                 Check(ApcGrid.HeightForRows(3) == g.ColumnHeadersHeight + 3 * ApcTheme.MinHeight + 2, "grid: HeightForRows = header + rows + border");
             using (var form = new Form { ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-32000, -32000) })
             {

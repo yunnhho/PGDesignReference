@@ -129,21 +129,60 @@ namespace APC.UI.Controls
             }
 
             int x = (int)(10 * s);
-            var logo = ApcTheme.GetImage(ApcTheme.Current.Logo);
-            int lh = (int)(BaseLogoHeight * s);
-            int lw = logo.Width * lh / logo.Height;
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.DrawImage(logo, new Rectangle(x, (TitleBarHeight - lh) / 2, lw, lh));
-            x += lw + (int)(12 * s);
+            if (ShowLogo)
+            {
+                var logo = ApcTheme.GetImage(ApcTheme.Current.Logo);
+                int lh = (int)(BaseLogoHeight * s);
+                int lw = logo.Width * lh / logo.Height;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.DrawImage(logo, new Rectangle(x, (TitleBarHeight - lh) / 2, lw, lh));
+                x += lw + (int)(12 * s);
+            }
 
-            var minRect = ButtonRect(WinButton.Minimize);
-            TextClip.Draw(g, this, _titleText, ApcTheme.GetFont(FontStyle.Bold),
-                Rectangle.FromLTRB(x, 0, minRect.Left - (int)(8 * s), TitleBarHeight), ApcTheme.C(c.Text),
-                TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
+            int right = (MinimizeBox ? ButtonRect(WinButton.Minimize) : ButtonRect(WinButton.Close)).Left - (int)(8 * s);
+            var flags = TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis;
+            if (ShowLogo)
+            {
+                // 메인 창: 프로그램 이름을 창 가운데 크게(로고·버튼과 겹치면 그 사이로 좁힌다)
+                var font = TitleFont();
+                int tw = TextRenderer.MeasureText(g, _titleText, font).Width;
+                int left = Math.Max(x, (ClientSize.Width - tw) / 2);
+                TextClip.Draw(g, this, _titleText, font, Rectangle.FromLTRB(left, 0, Math.Max(left, right), TitleBarHeight), ApcTheme.C(c.Text), flags);
+            }
+            else
+            {
+                TextClip.Draw(g, this, _titleText, ApcTheme.GetFont(FontStyle.Bold), Rectangle.FromLTRB(x, 0, right, TitleBarHeight), ApcTheme.C(c.Text), flags);
+            }
 
-            DrawWinButton(g, WinButton.Minimize, "win_minimize", MinimizeBox);
+            if (MinimizeBox) DrawWinButton(g, WinButton.Minimize, "win_minimize", true);
             DrawWinButton(g, WinButton.Close, "win_close", true);
         }
+
+        private Font _titleFont;
+
+        /// <summary>메인 창 제목 글꼴: 테마 글꼴 굵게 × 1.5.</summary>
+        private Font TitleFont()
+        {
+            var b = ApcTheme.GetFont(FontStyle.Bold);
+            float size = b.Size * 1.5f;
+            if (_titleFont == null || _titleFont.Name != b.Name || _titleFont.Size != size)
+            {
+                if (_titleFont != null) _titleFont.Dispose();
+                _titleFont = new Font(b.FontFamily, size, FontStyle.Bold);
+            }
+            return _titleFont;
+        }
+
+        private bool _showLogo = true;
+
+        /// <summary>타이틀바 왼쪽 로고 + 가운데 큰 제목(메인 창). false면 로고 없이 왼쪽 제목(dialog, SetupDialog가 끈다).</summary>
+        [DefaultValue(true)]
+        public bool ShowLogo
+        {
+            get { return _showLogo; }
+            set { _showLogo = value; Invalidate(TitleBarRect); }
+        }
+
 
         private void DrawWinButton(Graphics g, WinButton b, string name, bool enabled)
         {
@@ -325,7 +364,11 @@ namespace APC.UI.Controls
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) ApcTheme.Changed -= OnThemeChanged;
+            if (disposing)
+            {
+                ApcTheme.Changed -= OnThemeChanged;
+                if (_titleFont != null) _titleFont.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

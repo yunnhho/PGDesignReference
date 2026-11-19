@@ -1,4 +1,4 @@
-# APC.UI API (v1.11.0.0)
+# APC.UI API (v1.12.0.0)
 
 > build.sh가 자동 생성한다. 직접 고치지 않는다.
 
@@ -74,12 +74,14 @@
 - `ApcForm()`
 - `Rectangle ContentBounds { get; }` — 타이틀바·1px 테두리를 뺀 내용 영역(클라이언트 좌표) = Padding 안쪽.
 - `bool Resizable { get; set; }`
+- `bool ShowLogo { get; set; }` — 타이틀바 왼쪽 로고 + 가운데 큰 제목(메인 창). false면 로고 없이 왼쪽 제목(dialog, SetupDialog가 끈다).
 - `int ResizeGrip { get; }` — 가장자리 리사이즈 감지 폭(px).
 - `int TitleBarHeight { get; }`
 - `protected ApcGroup AddGroup(string title)` — 제목 있는 묶음(ApcGroup). 행은 AddFieldRow(group, ...)로 넣는다.
 - `protected CreateParams CreateParams { get; }`
 - `protected Label SectionTitle(string text)` — 구획 제목(굵게). AddContent로 넣으면 아래 요소와의 간격이 좁다.
 - `protected static Label FieldCaption(string text)` — 행 안 trailing 이름표(보통 굵기, 글자 폭).
+- `protected void AddCaptionRow(ApcGroup group, params string[] captions)` — 묶음 안 열 제목 줄. 바로 다음 AddFieldRow(group, ...) 행의 [이름표, 입력칸, trailing...] 위에 순서대로 맞춰 놓인다("" = 그 칸 제목 없음). 여러 행이 같은 칸(포트·신호·로직…)을 가질 때 행마다 FieldCaption을 되풀이하지 않고 위에 한 번만 쓴다.
 - `protected void AddContent(Control c)` — 표·판정판 등 자유 요소. 높이는 c.Height(ApcTheme.Px로 지정), 폭은 내용 폭.
 - `protected void AddContentFill(Control c)` — 남은 높이를 채우는 요소(그래프 등). SetupDialog에 높이를 줘야 하고 한 dialog에 하나만.
 - `protected void AddContentRow(params Control[] cells)` — 카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 c.Height)로. 칸 간격은 ApcLayout.ItemGap. 2×2는 두 번 부른다.
@@ -117,6 +119,22 @@
 - `string StatusText { get; set; }`
 - `string Title { get; set; }`
 
+## ApcIconCell
+
+`APC.UI.Controls` · class : DataGridViewTextBoxCell
+
+- `ApcIconCell()`
+- `Type ValueType { get; }`
+
+## ApcIconColumn
+
+`APC.UI.Controls` · class : DataGridViewColumn
+
+행 동작 아이콘 열(전송 ▶, 초기화 ↻ 등). 셀 값 true = 파란 아이콘(누를 수 있음), false = 회색 아이콘(지금은 못 함), 그 밖 = 빈 칸. 이미지는 테마의 "{IconName}_normal" / "{IconName}_disabled". 누름은 표의 CellClick에서 IsEnabled(셀)로 확인해 처리한다.
+- `ApcIconColumn()`
+- `static bool IsEnabled(DataGridViewCell cell)` — 셀이 누를 수 있는 상태(값 true)인지.
+- `string IconName { get; set; }` — 테마 이미지 이름 앞부분(예: "icon_play", "icon_reset").
+
 ## ApcJudgePanel
 
 `APC.UI.Controls` · class : Control
@@ -148,8 +166,18 @@
 
 `APC.UI.Controls` · class : DataGridViewColumn
 
-값이 StatusKind인 셀을 상태 램프 이미지로 그리는 컬럼. 그 외 값(null 등)은 빈 셀.
+상태 램프 컬럼. 셀 값 StatusKind = 램프만(가운데), ApcLampValue = 램프 + 문구("전송됨", "대기") 한 칸, 그 외(null 등) = 빈 셀.
 - `ApcLampColumn()`
+
+## ApcLampValue
+
+`APC.UI.Controls` · class
+
+램프 + 문구 셀 값(ApcLampColumn). 정렬은 상태 → 문구 순.
+- `ApcLampValue(StatusKind status, string text)`
+- `StatusKind Status { get; }`
+- `int CompareTo(object obj)`
+- `string Text { get; }`
 
 ## ApcNumericBox
 

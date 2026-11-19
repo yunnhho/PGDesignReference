@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using APC.UI.Controls;
 using APC.UI.Theming;
@@ -23,6 +24,42 @@ namespace APC.UI.Checks
             CheckReviewFixes();
             CheckHelperGuards();
             CheckContentRow();
+            CheckCaptionRow();
+        }
+
+        private static void CheckCaptionRow()
+        {
+            using (var d = new CaptionDialog())
+            {
+                ShowOffscreen(d);
+                Check(!d.ShowLogo, "dialog: SetupDialog hides logo");
+                var caps = d.Group.Controls.Cast<Control>().OfType<Label>().Where(l => l.Text == "COM" || l.Text == "포트").OrderBy(l => l.Left).ToArray();
+                Check(caps.Length == 2 && caps[0].Left == d.Com1.Left && caps[0].Width == d.Com1.Width && caps[1].Left == d.Port1.Left,
+                      "dialog: caption row aligns over next row's fields");
+                Check(caps.Length == 2 && caps[0].Bottom + ApcTheme.Px(4) == d.Com1.Top && d.Com2.Top - d.Com1.Bottom == ApcTheme.Px(ApcLayout.RowGap),
+                      "dialog: caption row above first row, row gap unchanged");
+                Check(d.Group.Height - d.Com2.Bottom == d.Group.Padding.Bottom, "dialog: group height includes caption row (" + d.Group.Bottom + "," + d.Com2.Bottom + "," + d.Group.Padding.Bottom + ")");
+                var issues = LayoutLint.Inspect(d);
+                foreach (var i in issues) Console.WriteLine("      " + i);
+                Check(issues.Count == 0, "dialog: caption row dialog lint clean");
+            }
+        }
+
+        private sealed class CaptionDialog : ApcForm
+        {
+            public readonly ApcComboBox Com1 = new ApcComboBox { Width = ApcTheme.Px(100) }, Com2 = new ApcComboBox { Width = ApcTheme.Px(100) };
+            public readonly ApcTextBox Port1 = new ApcTextBox { Width = ApcTheme.Px(80) };
+            public readonly ApcGroup Group;
+
+            public CaptionDialog()
+            {
+                SetupDialog("t", 500);
+                Group = AddGroup("g");
+                AddCaptionRow(Group, "", "COM", "포트");
+                AddFieldRow(Group, "#1", Com1, Port1);
+                AddFieldRow(Group, "#2", Com2, new ApcTextBox { Width = ApcTheme.Px(80) });
+                SetFooter(new ApcButton { Text = "취소", DialogResult = DialogResult.Cancel }, new ApcButton { Text = "저장" });
+            }
         }
 
         private static void CheckContentRow()

@@ -14,7 +14,7 @@ namespace APC.UI.Controls
     /// </summary>
     public partial class ApcForm
     {
-        private enum BlockKind { Row, Group, Content, Fill, Title, Cells }
+        private enum BlockKind { Row, Group, Content, Fill, Title, Cells, Captions }
 
         private sealed class Block
         {
@@ -44,6 +44,7 @@ namespace APC.UI.Controls
             TitleText = title;
             Resizable = false;
             MinimizeBox = false;
+            ShowLogo = false;   // dialog: 로고·최소화 없이 제목과 닫기만
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterParent;
             _dialogWidth = width;
@@ -65,6 +66,28 @@ namespace APC.UI.Controls
             if (block == null) throw new InvalidOperationException("AddGroup으로 만든 묶음이 아닙니다.");
             block.Rows.Add(NewRow(caption, field, trailing, group));
         }
+
+        /// <summary>
+        /// 묶음 안 열 제목 줄. 바로 다음 AddFieldRow(group, ...) 행의 [이름표, 입력칸, trailing...] 위에 순서대로 맞춰 놓인다("" = 그 칸 제목 없음).
+        /// 여러 행이 같은 칸(포트·신호·로직…)을 가질 때 행마다 FieldCaption을 되풀이하지 않고 위에 한 번만 쓴다.
+        /// </summary>
+        protected void AddCaptionRow(ApcGroup group, params string[] captions)
+        {
+            if (group == null) throw new ArgumentNullException("group");
+            RequireSetup();
+            var block = _blocks.FirstOrDefault(b => b.Group == group);
+            if (block == null) throw new InvalidOperationException("AddGroup으로 만든 묶음이 아닙니다.");
+            var labels = (captions ?? new string[0]).Select(t => new Label
+            {
+                Text = t ?? "", AutoSize = false, TextAlign = ContentAlignment.BottomLeft, BackColor = Color.Transparent,
+                Font = ApcTheme.GetFont(), ForeColor = ApcTheme.C(ApcTheme.Current.Colors.TextMuted),
+            }).ToArray();
+            foreach (var l in labels) group.Controls.Add(l);
+            block.Rows.Add(new Block { Kind = BlockKind.Captions, Cells = labels });
+        }
+
+        private static int CaptionRowHeight { get { return ApcTheme.Px(20); } }
+        private static int CaptionRowGap { get { return ApcTheme.Px(4); } }
 
         /// <summary>제목 있는 묶음(ApcGroup). 행은 AddFieldRow(group, ...)로 넣는다.</summary>
         protected ApcGroup AddGroup(string title)
@@ -191,7 +214,7 @@ namespace APC.UI.Controls
             foreach (var b in _blocks)
             {
                 if (b.Kind == BlockKind.Row) labelW = Math.Max(labelW, TextW(b.Caption));
-                if (b.Kind == BlockKind.Group) foreach (var r in b.Rows) labelW = Math.Max(labelW, TextW(r.Caption) + b.Group.Padding.Left);
+                if (b.Kind == BlockKind.Group) foreach (var r in b.Rows.Where(r => r.Kind == BlockKind.Row)) labelW = Math.Max(labelW, TextW(r.Caption) + b.Group.Padding.Left);
             }
 
             int fixedH = 0;
@@ -217,8 +240,17 @@ namespace APC.UI.Controls
                         b.Group.SetBounds(x, y, w, h);
                         var gp = b.Group.Padding;
                         int ry = gp.Top;
-                        foreach (var r in b.Rows)
+                        for (int k = 0; k < b.Rows.Count; k++)
                         {
+                            var r = b.Rows[k];
+                            if (r.Kind == BlockKind.Captions)
+                            {
+                                if (k + 1 >= b.Rows.Count || b.Rows[k + 1].Kind != BlockKind.Row)
+                                    throw new InvalidOperationException("AddCaptionRow 다음에는 같은 묶음의 AddFieldRow가 와야 합니다.");
+                                PlaceCaptions(r, b.Rows[k + 1], gp.Left, w - gp.Right, labelW - gp.Left, fieldH, ry);
+                                ry += CaptionRowHeight + CaptionRowGap;
+                                continue;
+                            }
                             PlaceRow(r, gp.Left, ry, w - gp.Right, labelW - gp.Left, fieldH);
                             ry += fieldH + ApcTheme.Px(ApcLayout.RowGap);
                         }
@@ -267,8 +299,9 @@ namespace APC.UI.Controls
             {
                 case BlockKind.Row: return fieldH;
                 case BlockKind.Group:
-                    int n = b.Rows.Count;
-                    return b.Group.Padding.Vertical + n * fieldH + Math.Max(0, n - 1) * ApcTheme.Px(ApcLayout.RowGap);
+                    int n = b.Rows.Count(r => r.Kind == BlockKind.Row), nc = b.Rows.Count - n;
+                    return b.Group.Padding.Vertical + n * fieldH + Math.Max(0, n - 1) * ApcTheme.Px(ApcLayout.RowGap)
+                           + nc * (CaptionRowHeight + CaptionRowGap);
                 case BlockKind.Fill: return 0;
                 case BlockKind.Cells: return b.Cells.Max(c => c.Height);
                 default: return b.Content.Height;
@@ -290,6 +323,18 @@ namespace APC.UI.Controls
             {
                 t.SetBounds(tx, y, t.Width, fieldH);
                 tx = t.Right + ApcTheme.Px(ApcLayout.ItemGap);
+            }
+        }
+
+        // 열 제목: 다음 행을 먼저 그 자리(제목 줄 아래)에 놓아 칸 위치를 얻고, 제목을 각 칸 위에 같은 폭으로
+        private static void PlaceCaptions(Block captions, Block next, int x, int right, int labelW, int fieldH, int y)
+        {
+            PlaceRow(next, x, y + CaptionRowHeight + CaptionRowGap, right, labelW, fieldH);
+            var targets = new[] { (Control)next.Caption, next.Field }.Concat(next.Trailing).ToArray();
+            for (int i = 0; i < captions.Cells.Length; i++)
+            {
+                if (i >= targets.Length) throw new InvalidOperationException("열 제목이 다음 행의 칸 수보다 많습니다.");
+                captions.Cells[i].SetBounds(targets[i].Left, y, targets[i].Width, CaptionRowHeight);
             }
         }
 

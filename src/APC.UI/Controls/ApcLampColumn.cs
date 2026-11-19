@@ -7,7 +7,9 @@ using APC.UI.Theming;
 
 namespace APC.UI.Controls
 {
-    /// <summary>값이 StatusKind인 셀을 상태 램프 이미지로 그리는 컬럼. 그 외 값(null 등)은 빈 셀.</summary>
+    /// <summary>
+    /// 상태 램프 컬럼. 셀 값 StatusKind = 램프만(가운데), ApcLampValue = 램프 + 문구("전송됨", "대기") 한 칸, 그 외(null 등) = 빈 셀.
+    /// </summary>
     public class ApcLampColumn : DataGridViewColumn
     {
         public ApcLampColumn() : base(new ApcLampCell())
@@ -27,6 +29,7 @@ namespace APC.UI.Controls
 
         internal string ImageNameFor(object value)
         {
+            if (value is ApcLampValue) value = ((ApcLampValue)value).Status;
             return value is StatusKind ? "lamp_" + value.ToString().ToLowerInvariant() : null;
         }
 
@@ -46,11 +49,38 @@ namespace APC.UI.Controls
             if (name == null || ApcTheme.Current == null || (paintParts & DataGridViewPaintParts.ContentForeground) == 0) return;
 
             int side = Math.Min((int)(BaseLamp * ApcTheme.Scale), cellBounds.Height - 4);
-            var r = new Rectangle(cellBounds.X + (cellBounds.Width - side) / 2, cellBounds.Y + (cellBounds.Height - side) / 2, side, side);
+            string text = value is ApcLampValue ? ((ApcLampValue)value).Text : null;
+            int gap = ApcTheme.Px(6);
+            int textW = string.IsNullOrEmpty(text) ? 0 : TextRenderer.MeasureText(g, text, cellStyle.Font).Width;
+            int total = side + (textW > 0 ? gap + textW : 0);
+            int x = cellBounds.X + Math.Max(ApcTheme.Px(4), (cellBounds.Width - total) / 2);   // 램프 + 문구 묶음을 가운데에
+            var r = new Rectangle(x, cellBounds.Y + (cellBounds.Height - side) / 2, side, side);
+            if (textW > 0)
+                TextRenderer.DrawText(g, text, cellStyle.Font, Rectangle.FromLTRB(r.Right + gap, cellBounds.Top, cellBounds.Right - 2, cellBounds.Bottom - 1),
+                    cellStyle.ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
             var old = g.InterpolationMode;
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.DrawImage(ApcTheme.GetImage(name), r);
             g.InterpolationMode = old;
         }
+    }
+
+    /// <summary>램프 + 문구 셀 값(ApcLampColumn). 정렬은 상태 → 문구 순.</summary>
+    public sealed class ApcLampValue : IComparable
+    {
+        public ApcLampValue(StatusKind status, string text) { Status = status; Text = text ?? string.Empty; }
+
+        public StatusKind Status { get; private set; }
+        public string Text { get; private set; }
+
+        public int CompareTo(object obj)
+        {
+            var o = obj as ApcLampValue;
+            if (o == null) return 1;
+            int c = Status.CompareTo(o.Status);
+            return c != 0 ? c : string.CompareOrdinal(Text, o.Text);
+        }
+
+        public override string ToString() { return Text; }
     }
 }

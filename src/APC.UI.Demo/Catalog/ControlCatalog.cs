@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using APC.UI.Controls;
@@ -31,9 +31,16 @@ namespace APC.UI.Demo.Catalog
             grid.Columns.Add("a", "LOT");
             grid.Columns.Add("b", "품목");
             grid.Columns["b"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            foreach (StatusKind k in Enum.GetValues(typeof(StatusKind))) grid.Rows.Add(k, "LOT-0" + (int)k, k.ToString());
+            grid.Columns.Add(new ApcIconColumn { HeaderText = "전송", IconName = "icon_play" });
+            grid.Columns.Add(new ApcIconColumn { HeaderText = "초기화", IconName = "icon_reset" });
+            grid.Columns.Add(new ApcLampColumn { HeaderText = "상태(램프+문구)", Width = S(140) });
+            foreach (StatusKind k in Enum.GetValues(typeof(StatusKind)))
+            {
+                bool can = k != StatusKind.Stop;   // 아이콘: true = 누를 수 있음(파랑), false = 회색
+                grid.Rows.Add(k, "LOT-0" + (int)k, k.ToString(), can, can, new ApcLampValue(k, k == StatusKind.Stop ? "대기" : k.ToString()));
+            }
             Body.Controls.Add(grid);
-            Body.Controls.Add(Row(Caption("그리드 (ApcGrid + ApcLampColumn)")));
+            Body.Controls.Add(Row(Caption("그리드 (ApcGrid + ApcLampColumn·ApcLampValue + ApcIconColumn)")));
 
             var combo = new ApcComboBox { Width = S(160) };
             combo.Items.AddRange(new object[] { "HB-6204", "HB-6205", "HB-6306" });

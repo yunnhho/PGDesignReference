@@ -79,7 +79,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 입력 폼(이름표+입력칸 행, 검증 `Alert` → `Confirm("저장")` → 결과 속성 → OK). LOT 번호·모델·작업자처럼 몇 칸 입력도 여기 | `RecipeDialog` |
 | 관리자 비밀번호 확인(설정 진입 전 등) | `AdminPasswordDialog` |
 | 칸·슬롯별 LOT 입력(표에 바로 스캔, 칸 수 가변, 빈 칸 Alert). 행마다 같은 항목을 넣는 설정(구역별 상하한 등)도 이 입력 표 방식 | `LotInputDialog` |
-| 통신·장비 설정(블록별 `ApcGroup` 묶음 + 공통 설정 + 비밀번호 변경) | `SettingsDialog` |
+| 통신·장비 설정(블록마다 한 행인 묶음 + 칸 제목 줄 `AddCaptionRow` + 공통 설정 + 비밀번호 변경) | `SettingsDialog` |
 
 - **dialog 배치는 `ApcForm` 헬퍼로만 한다.** 숫자(여백·행 높이·버튼 크기·`ClientSize`)를 직접 정하지 않는다 — 치수는 `ApcLayout`이 정하고 표시 직전에 한 번에 배치된다. 생성자에서 위→아래 순서로 부른다:
 
@@ -88,6 +88,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | `SetupDialog(title, width[, height])` | 제목·크기 고정·작업표시줄 숨김·부모 가운데. 폭은 배율 전 px. height 생략 = 내용으로 자동 |
 | `AddFieldRow(caption, field[, trailing...])` | 이름표 + 입력칸 한 줄. 이름표 열은 dialog 전체에 하나(가장 긴 이름표 폭) → 입력칸 왼쪽 끝이 모두 같다. trailing이 없으면 입력칸이 남은 폭을 채우고, 있으면(`FieldCaption("신호")`, 입력칸, 버튼…) 각자 `Width`로 왼→오 |
 | `AddGroup(title)` → `AddFieldRow(group, ...)` | 관련 행 묶음(`ApcGroup`). 묶음 사이 16 > 행 사이 12로 구분된다 |
+| `AddCaptionRow(group, "블럭", "COM", "신호", ...)` | 묶음 안 칸 제목 줄. 바로 다음 `AddFieldRow(group, ...)` 행의 [이름표, 입력칸, trailing...] 위에 순서대로 놓인다(`""` = 제목 없음). 여러 행이 같은 칸을 가지면(블록별 포트·신호·로직) 행마다 `FieldCaption`을 되풀이하지 말고 이것으로 한 번만 |
 | `AddContent(c)` / `AddContentFill(c)` | 표·상태 줄·그래프. `AddContent`는 `c.Height`(`ApcTheme.Px`) 그대로, `AddContentFill`은 남은 높이(`SetupDialog`에 height 필수, 하나만). 표 높이는 `ApcGrid.HeightForRows(행 수)` |
 | `AddContentRow(c1, c2, ...)` | 카드 여러 개를 한 줄에 같은 폭·같은 높이(가장 큰 `c.Height`)로. 2×2는 두 번 부른다. 카드 격자를 `TableLayoutPanel`로 직접 짜지 않는다(자식 기본 `Margin` 3px 때문에 render "빈 공간" 점검이 나온다) |
 | `SectionTitle(text)` | 구획 제목(굵게). `AddContent(SectionTitle("..."))` |
@@ -103,7 +104,7 @@ APCSOFT 현장 프로그램 화면은 **APC.UI 라이브러리**로 만든다. �
 | 글자 입력 / 바코드 | `ApcTextBox` / `ApcScanBox`: 화면의 `OnHandleCreated`에서 `var f = FindForm(); if (f != null) _scan.Attach(f);`(생성자엔 폼이 없다) |
 | 선택 목록 / 숫자 / 날짜 | `ApcComboBox` / `ApcNumericBox`(Minimum·Maximum·DecimalPlaces·Increment, ▲/▼는 칸 안 오른쪽에 위아래로) / `ApcDateBox` |
 | 버튼 | `ApcButton`(Normal·Primary·Danger) |
-| 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`, 열 제목 "상태"). 램프 색이 무엇인지 같은 행의 글 열로도 읽혀야 한다 — 그 열 제목은 "판정"·"내용"("상태"는 램프 열과 겹친다). 기준 이탈 값 셀은 `cell.Style.ForeColor = ApcTheme.Status(kind)` + 굵게(선택 행에서도 색이 유지된다) |
+| 표 | `ApcGrid` + 상태 열 `ApcLampColumn`(셀 값 = `StatusKind`, 열 제목 "상태"). 상태 문구가 짧으면(가동·대기·전송됨) 셀 값 `new ApcLampValue(kind, "문구")`로 램프 + 문구를 한 칸에 — 이때는 따로 글 열을 두지 않는다. 행마다 누르는 동작(전송·초기화)은 버튼을 그리지 말고 `ApcIconColumn { IconName = "icon_play" | "icon_reset" }`(셀 값 true = 파란 아이콘, false = 회색 = 지금 못 함), `CellClick`에서 `ApcIconColumn.IsEnabled(cell)`이 false면 아무것도 하지 않는다. 램프 색이 무엇인지 같은 행의 글 열로도 읽혀야 한다 — 그 열 제목은 "판정"·"내용"("상태"는 램프 열과 겹친다). 기준 이탈 값 셀은 `cell.Style.ForeColor = ApcTheme.Status(kind)` + 굵게(선택 행에서도 색이 유지된다) |
 | 읽기 전용 값 한 줄(현재 바코드·LOT·작업자) | `ApcTextBox { ReadOnly = true }`(회색 바탕) 또는 `ApcValueCard` |
 | 큰 현재값(센서·수량·불량률) | `ApcValueCard`(Title·Value·Unit·Footer·Status). 값 글자 크기는 카드 높이를 따른다 — 나란한 카드는 같은 높이로(`Columns()`·`AddContentRow`가 맞춘다). 값이 두 개(온도 + 습도)면 주 값은 `Value`, 보조 값은 `Footer`("습도 57.0 %RH · 경고"). `Status`(램프·테두리)는 둘 중 나쁜 쪽, `ValueStatus`·`FooterStatus`는 각 항목의 판정 — 안 주면 정상인 온도가 노란 글자로 나온다. Footer에 보조 값이 둘 이상(습도 · 파티클)이면 `FooterStatus` 대신 `SetFooterParts(new[]{"습도 43.8 %RH","파티클 4,210 개/m³"}, new[]{StatusKind.Run, StatusKind.Alarm})` — 항목마다 제 색으로 그린다 |
 | 설비 상태 한 칸, 누르면 상세 | `ApcStatusTile`(Text=설비명·Status·StatusText, `Click`) |

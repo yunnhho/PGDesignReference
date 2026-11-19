@@ -23,7 +23,7 @@ namespace APC.UI.Controls
             AllowUserToAddRows = false;
             AllowUserToResizeRows = false;
             BorderStyle = BorderStyle.FixedSingle;
-            CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            CellBorderStyle = DataGridViewCellBorderStyle.Single;   // 세로선도 — 열이 많은 현장 표에서 칸 경계가 보이게
             ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             // 현장 표 기준: 전부 가운데. 긴 글(알람 문구·비고) 열만 그 열에서 MiddleLeft로.
             DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -47,7 +47,7 @@ namespace APC.UI.Controls
             var text = ApcTheme.C(c.Text);
             Font = ApcTheme.GetFont();
             BackgroundColor = Color.White;
-            GridColor = ApcTheme.C(c.GridLine);
+            GridColor = LineColor(c);
             DefaultCellStyle.ForeColor = text;
             DefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridSelected);
             DefaultCellStyle.SelectionForeColor = text;
@@ -55,6 +55,15 @@ namespace APC.UI.Controls
             ColumnHeadersDefaultCellStyle.ForeColor = text;
             ColumnHeadersDefaultCellStyle.SelectionBackColor = ApcTheme.C(c.GridHeader[1]);
             foreach (DataGridViewRow row in Rows) row.Height = RowTemplate.Height;
+        }
+
+        /// <summary>
+        /// 칸 선 색 = 테두리 색과 흰색 중간. gridLine(입력칸 읽기 전용 바탕과 같은 색)은 너무 옅어 흰 셀 사이에서 선이 안 보인다.
+        /// </summary>
+        internal static Color LineColor(ThemeColors c)
+        {
+            var b = ApcTheme.C(c.Border);
+            return Color.FromArgb((b.R + 255 * 2) / 3, (b.G + 255 * 2) / 3, (b.B + 255 * 2) / 3);
         }
 
         /// <summary>기본 폭 100px은 한글 폰트에서 코드값(WO-24117-01 등)이 잘린다.</summary>

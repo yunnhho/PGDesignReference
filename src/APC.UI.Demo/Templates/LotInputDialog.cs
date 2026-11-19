@@ -19,7 +19,7 @@ namespace APC.UI.Demo.Templates
             SelectionMode = DataGridViewSelectionMode.CellSelect, MultiSelect = false, ScrollBars = ScrollBars.None };   // 입력 표: 행이 아니라 입력할 칸만 강조, 칸 수만큼 높이를 잡으므로 스크롤 없음
         private readonly string[] _slots;
 
-        public LotInputDialog() : this("고속 연마기 ST-GB-01", new[] { "B1", "B2", "B3", "B4" }, new[] { "Ø32 · 0.8μm", "Ø32 · 0.8μm", "Ø40 · 0.4μm", "Ø40 · 0.4μm" }) { }
+        public LotInputDialog() : this("고속 연마기 ST-GB-02", new[] { "B1", "B2", "B3", "B4" }, new[] { "Ø32 · 0.8μm", "Ø32 · 0.8μm", "Ø40 · 0.4μm", "Ø40 · 0.4μm" }) { }
 
         public LotInputDialog(string equipment, string[] slots, string[] specs)
         {
@@ -28,7 +28,7 @@ namespace APC.UI.Demo.Templates
 
             int rowH = ApcTheme.Px(52), headH = ApcTheme.Px(40);
             AddFieldRow("설비", new Label { Text = equipment, AutoSize = false, TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Transparent,
-                Font = ApcTheme.GetFont(), ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text) });
+                Font = ApcTheme.GetFont(FontStyle.Bold), ForeColor = ApcTheme.C(ApcTheme.Current.Colors.Text) });   // 어느 설비에 넣는지가 핵심 → 값 강조
 
             _grid.RowTemplate.Height = rowH;
             _grid.ColumnHeadersHeight = headH;
